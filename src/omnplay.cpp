@@ -30,6 +30,8 @@
 #include "omnplay.h"
 #include "ui.h"
 
+#include "omplrclnt.h"
+
 static gboolean on_main_window_delete_event( GtkWidget *widget, GdkEvent *event, gpointer user_data )
 {
     gtk_exit(0);
@@ -51,12 +53,65 @@ omnplay_instance_t* omnplay_create(int argc, char** argv)
 
 void omnplay_close(omnplay_instance_t* app)
 {
-//OmPlrHandle plrHandle;
-//OmPlrClose(plrHandle);
 };
+
+#if 0
+static void test()
+{
+    int r;
+    OmPlrClipInfo clip_info;
+    char clip_name[omPlrMaxClipDirLen];
+    OmPlrHandle omn;
+
+    /* open director */
+    r = OmPlrOpen
+    (
+        "omneon-1b.internal.m1stereo.tv",
+        "Play_11",
+        &omn
+    );
+
+    if(r)
+        fprintf(stderr, "ERROR: OmPlrOpen failed with 0x%.8X\n", r);
+    else
+    {
+        /* fetch all clips known in Omneon */
+        r = OmPlrClipGetFirst
+        (
+            omn,
+            clip_name, sizeof(clip_name)
+        );
+
+        if(r)
+            fprintf(stderr, "ERROR: OmPlrClipGetFirst failed with 0x%.8X\n", r);
+        else
+        {
+            fprintf(stderr, "OmPlrClipGetFirst=[%s]\n", clip_name);
+
+            clip_info.maxMsTracks = 0;
+            clip_info.size = sizeof(clip_info);
+            r = OmPlrClipGetInfo(omn, clip_name, &clip_info);
+
+            if(r)
+                fprintf(stderr, "ERROR: OmPlrClipGetInfo failed with 0x%.8X\n", r);
+            else
+            {
+                fprintf(stderr, "OmPlrClipGetInfo(%s)=firstFrame=%d, lastFrame=%d",
+                    clip_name, clip_info.firstFrame, clip_info.lastFrame);
+            }
+        };
+
+
+        OmPlrClose(omn);
+    };
+};
+#endif
 
 void omnplay_init(omnplay_instance_t* app)
 {
     gtk_signal_connect( GTK_OBJECT( app->window ), "destroy",
         GTK_SIGNAL_FUNC(on_main_window_delete_event), app);
+#if 0
+    test();
+#endif
 };

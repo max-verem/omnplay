@@ -1,0 +1,15 @@
+1. generate files:
+    ./autogen
+
+2. configure for win32
+    ./configure --host=i686-pc-mingw32
+
+3. preparation of library files cross-compiling
+
+    # create def file
+    pexports.exe omplrlib.dll > omplrlib.def
+    pexports.exe ommedia.dll > ommedia.def
+
+    # create lib file
+    /usr/i686-pc-mingw32/bin/dlltool omplrlib.dll --def omplrlib.def --output-lib ../lib/libomplrlib.a
+    /usr/i686-pc-mingw32/bin/dlltool ommedia.dll --def ommedia.def --output-lib ../lib/libommedia.a
