@@ -1,0 +1,60 @@
+dnl Process this file with autoconf to produce a configure script.
+
+AC_INIT(configure.in)
+AM_INIT_AUTOMAKE(omnplay, 0.1)
+AM_CONFIG_HEADER(config.h)
+AM_MAINTAINER_MODE
+
+AC_ISC_POSIX
+AC_PROG_CC
+AM_PROG_CC_STDC
+AM_PROG_CC_C_O
+AC_HEADER_STDC
+AC_PROG_CXX
+
+PKG_CHECK_MODULES(GTK, [gtk+-2.0 >= 1.3.13])
+AC_SUBST(GTK_CFLAGS)
+AC_SUBST(GTK_LIBS)
+
+PKG_CHECK_MODULES(GTHREAD, [gthread-2.0 >= 2.26.0])
+AC_SUBST(GTHREAD_CFLAGS)
+AC_SUBST(GTHREAD_LIBS)
+
+AC_ARG_WITH([ommedia],
+        [AS_HELP_STRING([--with-ommedia=path], [path to ommedia /Media API/])],
+        [OMMEDIA_PATH=$withval],
+        [OMMEDIA_PATH=/usr/local/omneon/ommedia])
+
+AC_ARG_WITH([omplrlib],
+        [AS_HELP_STRING([--with-omplrlib=path], [path to omplrlib /Player API/])],
+        [OMPLRLIB_PATH=$withval],
+        [OMPLRLIB_PATH=/usr/local/omneon/omplrlib])
+
+OM_CFLAGS="-I$OMPLRLIB_PATH/include -I$OMMEDIA_PATH/include"
+AC_SUBST(OM_CFLAGS)
+
+OM_LIBS="-L$OMPLRLIB_PATH/lib -L$OMMEDIA_PATH/lib -lomplrlib -lommedia"
+AC_SUBST(OM_LIBS)
+
+dnl #GETTEXT_PACKAGE=omnplay
+dnl #AC_SUBST(GETTEXT_PACKAGE)
+dnl #AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE,"$GETTEXT_PACKAGE","")
+
+dnl Add the languages which your application supports here.
+dnl #ALL_LINGUAS=""
+dnl #AM_GLIB_GNU_GETTEXT
+
+dnl Use -Wall if we have gcc.
+changequote(,)dnl
+if test "x$GCC" = "xyes"; then
+  case " $CFLAGS " in
+  *[\ \	]-Wall[\ \	]*) ;;
+  *) CFLAGS="$CFLAGS -Wall" ;;
+  esac
+fi
+changequote([,])dnl
+
+AC_OUTPUT([
+Makefile
+src/Makefile
+])
