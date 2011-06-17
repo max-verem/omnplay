@@ -1,5 +1,5 @@
 /*
- * omnplay.h -- GTK+ 2 omnplay
+ * ui_buttons.h -- GTK+ 2 omnplay
  * Copyright (C) 2011 Maksym Veremeyenko <verem@m1stereo.tv>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -17,53 +17,21 @@
  * Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef OMNPLAY_H
-#define OMNPLAY_H
+#ifndef UI_BUTTONS_H
+#define UI_BUTTONS_H
+
+#include "omnplay.h"
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
 
-typedef enum control_buttons
-{
-    BUTTON_PLAYLIST_ITEM_ADD = 1,
-    BUTTON_PLAYLIST_ITEM_DEL,
-    BUTTON_PLAYLIST_ITEM_EDIT,
-
-    BUTTON_PLAYLIST_LOAD,
-    BUTTON_PLAYLIST_SAVE,
-
-    BUTTON_PLAYLIST_BLOCK_SINGLE,
-    BUTTON_PLAYLIST_BLOCK_LOOP,
-
-    BUTTON_PLAYLIST_ITEM_UP,
-    BUTTON_PLAYLIST_ITEM_DOWN,
-
-    BUTTON_PLAYER_CUE,
-    BUTTON_PLAYER_PLAY,
-    BUTTON_PLAYER_PAUSE,
-    BUTTON_PLAYER_STOP,
-
-    BUTTON_LIBRARY_ADD,
-    BUTTON_LIBRARY_REFRESH,
-
-    BUTTON_LAST
-} control_buttons_t;
-
-typedef struct omnplay_instance
-{
-    GtkWidget *window;
-    GtkWidget *buttons[BUTTON_LAST + 1];
-}
-omnplay_instance_t;
-
-omnplay_instance_t* omnplay_create(int argc, char** argv);
-void omnplay_init(omnplay_instance_t* app);
-void omnplay_close(omnplay_instance_t* app);
+GtkWidget* ui_create_button(GtkWidget* top, omnplay_instance_t* app, control_buttons_t id);
 
 #ifdef __cplusplus
 };
 #endif /* __cplusplus */
 
-#endif /* OMNPLAY_H */
+
+#endif /* UI_BUTTONS_H */

@@ -31,14 +31,9 @@
 #include <gtk/gtk.h>
 
 #include "ui.h"
+#include "ui_utils.h"
+#include "ui_buttons.h"
 #include "support.h"
-
-#define GLADE_HOOKUP_OBJECT(component,widget,name) \
-  g_object_set_data_full (G_OBJECT (component), name, \
-    gtk_widget_ref (widget), (GDestroyNotify) gtk_widget_unref)
-
-#define GLADE_HOOKUP_OBJECT_NO_REF(component,widget,name) \
-  g_object_set_data (G_OBJECT (component), name, widget)
 
 static GtkWidget* create_label(GtkWidget* top, char* text, char* reg, GtkJustification jtype)
 {
@@ -95,7 +90,6 @@ static GtkWidget* create_treeview(GtkWidget* top, char* name, const char* column
 
 static GtkWidget* pane_library_grid(GtkWidget* top, omnplay_instance_t* app)
 {
-//    static const char* columns[] = {"REM", "B", "CH", "ID", "IN", "DUR", "TITLE", NULL};
     static const char* columns[] = {"ID", "DUR", "TITLE", NULL};
     GtkWidget *scrolledwindow;
 
@@ -114,13 +108,21 @@ static GtkWidget* pane_library_buttons(GtkWidget* top, omnplay_instance_t* app)
 {
     GtkWidget* hbox;
 
-    hbox = gtk_vbox_new (FALSE, 0);
+    hbox = gtk_hbox_new (FALSE, 0);
     gtk_widget_show (hbox);
 
-    /* add buttons here: */
+    /* playlist modify buttons */
     gtk_box_pack_start (GTK_BOX (hbox),
-        create_label(top, "BUTTONS HERE", NULL, GTK_JUSTIFY_LEFT),
-            FALSE, TRUE, 0);
+        ui_create_button(top, app, BUTTON_LIBRARY_ADD),
+            FALSE, FALSE, 0);
+    gtk_box_pack_start (GTK_BOX (hbox),
+        ui_create_button(top, app, BUTTON_LIBRARY_REFRESH),
+            FALSE, FALSE, 0);
+
+    /* spacer */
+    gtk_box_pack_start (GTK_BOX (hbox),
+        create_label(top, NULL, NULL, GTK_JUSTIFY_CENTER),
+            TRUE, TRUE, 0);
 
     return hbox;
 }
@@ -131,6 +133,7 @@ static GtkWidget* pane_library(GtkWidget* top, omnplay_instance_t* app)
 
     vbox = gtk_vbox_new (FALSE, 0);
     gtk_widget_show (vbox);
+    gtk_widget_set_size_request(vbox, 300, -1);
 
     /* add buttons box */
     gtk_box_pack_start (GTK_BOX (vbox),
@@ -159,9 +162,140 @@ static GtkWidget* pane_operate_status(GtkWidget* top, omnplay_instance_t* app)
     return frame;
 }
 
+static GtkWidget* pane_operate_buttons_playlist(GtkWidget* top, omnplay_instance_t* app)
+{
+    GtkWidget* hbox;
+
+    hbox = gtk_hbox_new (FALSE, 0);
+    gtk_widget_show (hbox);
+
+    /* playlist load/save buttons */
+    gtk_box_pack_start (GTK_BOX (hbox),
+        ui_create_button(top, app, BUTTON_PLAYLIST_LOAD),
+            FALSE, FALSE, 0);
+    gtk_box_pack_start (GTK_BOX (hbox),
+        ui_create_button(top, app, BUTTON_PLAYLIST_SAVE),
+            FALSE, FALSE, 0);
+
+    /* spacer */
+    gtk_box_pack_start (GTK_BOX (hbox),
+        create_label(top, "   ", NULL, GTK_JUSTIFY_CENTER),
+            FALSE, FALSE, 0);
+
+    /* playlist modify buttons */
+    gtk_box_pack_start (GTK_BOX (hbox),
+        ui_create_button(top, app, BUTTON_PLAYLIST_ITEM_ADD),
+            FALSE, FALSE, 0);
+    gtk_box_pack_start (GTK_BOX (hbox),
+        ui_create_button(top, app, BUTTON_PLAYLIST_ITEM_EDIT),
+            FALSE, FALSE, 0);
+    gtk_box_pack_start (GTK_BOX (hbox),
+        ui_create_button(top, app, BUTTON_PLAYLIST_ITEM_DEL),
+            FALSE, FALSE, 0);
+
+    /* spacer */
+    gtk_box_pack_start (GTK_BOX (hbox),
+        create_label(top, "   ", NULL, GTK_JUSTIFY_CENTER),
+            FALSE, FALSE, 0);
+
+    /* playlist block buttons */
+    gtk_box_pack_start (GTK_BOX (hbox),
+        ui_create_button(top, app, BUTTON_PLAYLIST_BLOCK_SINGLE),
+            FALSE, FALSE, 0);
+    gtk_box_pack_start (GTK_BOX (hbox),
+        ui_create_button(top, app, BUTTON_PLAYLIST_BLOCK_LOOP),
+            FALSE, FALSE, 0);
+
+    /* spacer */
+    gtk_box_pack_start (GTK_BOX (hbox),
+        create_label(top, "   ", NULL, GTK_JUSTIFY_CENTER),
+            FALSE, FALSE, 0);
+
+    /* playlist move items buttons */
+    gtk_box_pack_start (GTK_BOX (hbox),
+        ui_create_button(top, app, BUTTON_PLAYLIST_ITEM_UP),
+            FALSE, FALSE, 0);
+    gtk_box_pack_start (GTK_BOX (hbox),
+        ui_create_button(top, app, BUTTON_PLAYLIST_ITEM_DOWN),
+            FALSE, FALSE, 0);
+
+    return hbox;
+}
+
+static GtkWidget* pane_operate_grid(GtkWidget* top, omnplay_instance_t* app)
+{
+    static const char* columns[] = {"REM", "B", "CH", "ID", "IN", "DUR", "TITLE", NULL};
+    GtkWidget *scrolledwindow;
+
+    scrolledwindow = gtk_scrolled_window_new (NULL, NULL);
+    gtk_widget_show (scrolledwindow);
+    gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolledwindow),
+        GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+
+    gtk_container_add (GTK_CONTAINER (scrolledwindow),
+        create_treeview(top, "treeview_playlist", columns));
+
+    return scrolledwindow;
+}
+
+static GtkWidget* pane_operate_buttons_operate(GtkWidget* top, omnplay_instance_t* app)
+{
+    GtkWidget* hbox;
+
+    hbox = gtk_hbox_new (FALSE, 0);
+    gtk_widget_show (hbox);
+
+    /* spacer */
+    gtk_box_pack_start (GTK_BOX (hbox),
+        create_label(top, NULL, NULL, GTK_JUSTIFY_CENTER),
+            TRUE, TRUE, 0);
+
+    /* playlist modify buttons */
+    gtk_box_pack_start (GTK_BOX (hbox),
+        ui_create_button(top, app, BUTTON_PLAYER_CUE),
+            FALSE, FALSE, 0);
+    gtk_box_pack_start (GTK_BOX (hbox),
+        ui_create_button(top, app, BUTTON_PLAYER_PLAY),
+            FALSE, FALSE, 0);
+    gtk_box_pack_start (GTK_BOX (hbox),
+        ui_create_button(top, app, BUTTON_PLAYER_PAUSE),
+            FALSE, FALSE, 0);
+    gtk_box_pack_start (GTK_BOX (hbox),
+        ui_create_button(top, app, BUTTON_PLAYER_STOP),
+            FALSE, FALSE, 0);
+
+    /* spacer */
+    gtk_box_pack_start (GTK_BOX (hbox),
+        create_label(top, NULL, NULL, GTK_JUSTIFY_CENTER),
+            TRUE, TRUE, 0);
+
+    return hbox;
+}
+
 static GtkWidget* pane_operate_operate(GtkWidget* top, omnplay_instance_t* app)
 {
-    return create_label(top, "pane_operate", NULL, GTK_JUSTIFY_CENTER);
+    GtkWidget* vbox;
+
+    vbox = gtk_vbox_new (FALSE, 0);
+    gtk_widget_show (vbox);
+
+    /* add buttons box #1 */
+    gtk_box_pack_start (GTK_BOX (vbox),
+        pane_operate_buttons_playlist(top, app),
+        FALSE, FALSE, 0);
+
+    /* add buttons box */
+    gtk_box_pack_start (GTK_BOX (vbox),
+        pane_operate_grid(top, app),
+        TRUE, TRUE, 0);
+
+    /* add buttons box #1 */
+    gtk_box_pack_start (GTK_BOX (vbox),
+        pane_operate_buttons_operate(top, app),
+        FALSE, FALSE, 0);
+
+    return vbox;
+
 }
 
 static GtkWidget* pane_operate(GtkWidget* top, omnplay_instance_t* app)
@@ -192,7 +326,7 @@ static GtkWidget* pane_top(GtkWidget* top, omnplay_instance_t* app)
     pane = gtk_hpaned_new ();
     gtk_widget_show (pane);
 
-    gtk_paned_set_position (GTK_PANED (pane), 300);
+    gtk_paned_set_position (GTK_PANED (pane), 800);
 
     gtk_paned_pack1 (GTK_PANED (pane),
         pane_operate(top, app),

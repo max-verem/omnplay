@@ -10,7 +10,8 @@ bin_PROGRAMS = omnplay
 omnplay_SOURCES = \
 	main.c \
 	support.c support.h \
-	ui.c ui.h \
+	ui.c ui.h ui_utils.h \
+	ui_buttons.c ui_buttons.h \
 	omnplay.cpp omnplay.h
 
 omnplay_LDADD = @GTHREAD_LIBS@ @GTK_LIBS@ @OM_LIBS@
