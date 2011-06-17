@@ -26,6 +26,7 @@
 #include <string.h>
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>
+#include <pthread.h>
 
 #include "omnplay.h"
 #include "ui.h"
@@ -33,12 +34,34 @@
 
 #include "omplrclnt.h"
 
+static char* frames2tc( int f, float fps, char* buf )
+{
+    int tc[4] = { 0, 0, 0, 0 };
+    float d;
+    int t;
+
+    if ( fps && f >= 0)
+    {
+        d = f / fps;
+        t = d;
+
+        tc[0] = (d - t) * fps;
+        tc[1] = t % 60; t /= 60;
+        tc[2] = t % 60; t /= 60;
+        tc[3] = t % 24;
+    }
+
+    sprintf(buf, "%.2d:%.2d:%.2d:%.2d", tc[3], tc[2], tc[1], tc[0]);
+
+    return buf;
+}
+
+
 static gboolean on_main_window_delete_event( GtkWidget *widget, GdkEvent *event, gpointer user_data )
 {
     gtk_exit(0);
     return TRUE;
 }
-
 
 omnplay_instance_t* omnplay_create(int argc, char** argv)
 {
@@ -58,74 +81,154 @@ omnplay_instance_t* omnplay_create(int argc, char** argv)
     return app;
 };
 
-
 void omnplay_destroy(omnplay_instance_t* app)
 {
     free(app);
 };
 
-
-#if 0
-static void test()
+static void omnplay_update_status(omnplay_player_t* player, OmPlrStatus *prev , OmPlrStatus *curr)
 {
-    int r;
-    OmPlrClipInfo clip_info;
-    char clip_name[omPlrMaxClipDirLen];
-    OmPlrHandle omn;
+    char tc_cur[32], tc_rem[32], state[32], status[32];
+    const char *clip;
 
-    /* open director */
-    r = OmPlrOpen
-    (
-        "omneon-1b.internal.m1stereo.tv",
-        "Play_11",
-        &omn
-    );
+    if(curr)
+    {
+        frames2tc(curr->pos - curr->minPos, 25.0, tc_cur);
+        frames2tc(curr->maxPos - curr->pos, 25.0, tc_rem);
+        strcpy(status, "ONLINE");
+        clip = curr->currClipName;
 
-    if(r)
-        fprintf(stderr, "ERROR: OmPlrOpen failed with 0x%.8X\n", r);
+        switch(curr->state)
+        {
+            case omPlrStateStopped:     strcpy(state, "STOPPED");       break;
+            case omPlrStateCuePlay:     strcpy(state, "CUE_PLAY");      break;
+            case omPlrStatePlay:        strcpy(state, "PLAY");          break;
+            case omPlrStateCueRecord:   strcpy(state, "CUE_RECORD");    break;
+            case omPlrStateRecord:      strcpy(state, "RECORD");        break;
+        };
+    }
     else
     {
-        /* fetch all clips known in Omneon */
-        r = OmPlrClipGetFirst
-        (
-            omn,
-            clip_name, sizeof(clip_name)
-        );
+        tc_cur[0] = 0;
+        tc_rem[0] = 0;
+        clip = "";
+        state[0] = 0;
+        strcpy(status, "OFFLINE");
+    };
+
+    gdk_threads_enter();
+    gtk_label_set_text(GTK_LABEL (player->label_tc_cur), tc_cur);
+    gtk_label_set_text(GTK_LABEL (player->label_tc_rem), tc_rem);
+    gtk_label_set_text(GTK_LABEL (player->label_state), state);
+    gtk_label_set_text(GTK_LABEL (player->label_status), status);
+    gtk_label_set_text(GTK_LABEL (player->label_clip), clip);
+    gdk_flush();
+    gdk_threads_leave();
+
+    memcpy(prev, curr, sizeof(OmPlrStatus));
+};
+
+static void* omnplay_thread_proc(void* data)
+{
+    int r;
+    OmPlrStatus st_curr, st_prev;
+    omnplay_player_t* player = (omnplay_player_t*)data;
+
+    /* connect */
+    pthread_mutex_lock(&player->lock);
+    r = OmPlrOpen(player->host, player->name, (OmPlrHandle*)&player->handle);
+    pthread_mutex_unlock(&player->lock);
+    if(r)
+    {
+        fprintf(stderr, "ERROR: OmPlrOpen(%s, %s) failed with 0x%.8X\n",
+            player->host, player->name, r);
+
+        return (void*)r;
+    };
+
+    /* setup to do not reconnect */
+    pthread_mutex_lock(&player->lock);
+    OmPlrSetRetryOpen((OmPlrHandle)player->handle, 0);
+    pthread_mutex_unlock(&player->lock);
+
+    /* setup directory */
+    if(player->app->players.path[0])
+    {
+        pthread_mutex_lock(&player->lock);
+//        r = OmPlrClipSetDirectory((OmPlrHandle)player->handle, player->app->players.path);
+        pthread_mutex_unlock(&player->lock);
 
         if(r)
-            fprintf(stderr, "ERROR: OmPlrClipGetFirst failed with 0x%.8X\n", r);
-        else
         {
-            fprintf(stderr, "OmPlrClipGetFirst=[%s]\n", clip_name);
+            fprintf(stderr, "ERROR: OmPlrClipSetDirectory(%s) failed with 0x%.8X\n",
+                player->app->players.path, r);
 
-            clip_info.maxMsTracks = 0;
-            clip_info.size = sizeof(clip_info);
-            r = OmPlrClipGetInfo(omn, clip_name, &clip_info);
+            pthread_mutex_lock(&player->lock);
+            OmPlrClose((OmPlrHandle)player->handle);
+            pthread_mutex_unlock(&player->lock);
 
-            if(r)
-                fprintf(stderr, "ERROR: OmPlrClipGetInfo failed with 0x%.8X\n", r);
-            else
-            {
-                fprintf(stderr, "OmPlrClipGetInfo(%s)=firstFrame=%d, lastFrame=%d",
-                    clip_name, clip_info.firstFrame, clip_info.lastFrame);
-            }
+            return (void*)r;
         };
-
-
-        OmPlrClose(omn);
     };
+
+    /* endless loop */
+    for(r = 0 ; !player->app->f_exit && !r;)
+    {
+        /* sleep */
+        usleep(100000);
+
+        /* get status */
+        pthread_mutex_lock(&player->lock);
+        st_curr.size = sizeof(OmPlrStatus);
+        r = OmPlrGetPlayerStatus((OmPlrHandle)player->handle, &st_curr);
+        pthread_mutex_unlock(&player->lock);
+
+        if(r)
+            fprintf(stderr, "ERROR: OmPlrGetPlayerStatus failed with 0x%.8X\n", r);
+        else
+            if(memcmp(&st_curr, &st_prev, sizeof(OmPlrStatus)))
+                omnplay_update_status(player, &st_prev , &st_curr);
+    };
+
+    pthread_mutex_lock(&player->lock);
+    OmPlrClose((OmPlrHandle)player->handle);
+    pthread_mutex_unlock(&player->lock);
+
+    return NULL;
 };
-#endif
 
 void omnplay_init(omnplay_instance_t* app)
 {
+    int i;
+
     gtk_signal_connect( GTK_OBJECT( app->window ), "destroy",
         GTK_SIGNAL_FUNC(on_main_window_delete_event), app);
-#if 0
-    test();
-#endif
+
+    for(i = 0; i < app->players.count; i++)
+    {
+        /* create lock */
+        pthread_mutex_init(&app->players.item[i].lock, NULL);
+
+        /* create a omneon status thread */
+        pthread_create(&app->players.item[i].thread, NULL,
+            omnplay_thread_proc, &app->players.item[i]);
+    };
 };
 
 void omnplay_release(omnplay_instance_t* app)
 {
+    int i;
+    void* r;
+
+    app->f_exit = 1;
+
+    for(i = 0; i < app->players.count; i++)
+    {
+        /* create a omneon status thread */
+        pthread_join(app->players.item[i].thread, &r);
+
+        /* create lock */
+        pthread_mutex_destroy(&app->players.item[i].lock);
+
+    };
 };
