@@ -60,7 +60,7 @@ typedef struct omnplay_player
     void* handle;
     pthread_t thread;
     pthread_mutex_t lock;
-    GtkWidget *label_status, *label_state, *label_cur, *label_rem, *label_clip;
+    GtkWidget *label_status, *label_state, *label_tc_cur, *label_tc_rem, *label_clip;
 }
 omnplay_player_t;
 

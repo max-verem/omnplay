@@ -150,11 +150,70 @@ static GtkWidget* pane_library(GtkWidget* top, omnplay_instance_t* app)
 
 static GtkWidget* create_channel_status(GtkWidget* top, omnplay_instance_t* app, int idx)
 {
+    GtkWidget* vbox;
+    GtkWidget* hbox;
     GtkWidget* frame;
+    omnplay_player_t* player;
 
-    frame = gtk_frame_new (app->players.item[idx].name);
-//    gtk_frame_set_shadow_type(GTK_FRAME(frame), GTK_SHADOW_IN);
+    player = &app->players.item[idx];
+
+    frame = gtk_frame_new(player->name);
     gtk_widget_show(frame);
+
+    vbox = gtk_vbox_new(FALSE, 0);
+    gtk_container_add(GTK_CONTAINER(frame), vbox);
+    gtk_widget_show(vbox);
+
+    /* status label */
+    gtk_box_pack_start(GTK_BOX (vbox),
+        player->label_status = create_label(top, "OFFLINE", NULL, GTK_JUSTIFY_LEFT),
+            FALSE, FALSE, 0);
+
+    /* spacel label */
+    gtk_box_pack_start(GTK_BOX (vbox),
+        create_label(top, " ", NULL, GTK_JUSTIFY_CENTER),
+            FALSE, FALSE, 0);
+
+    /* clip label */
+    gtk_box_pack_start (GTK_BOX (vbox),
+        player->label_clip = create_label(top, "U0002323", NULL, GTK_JUSTIFY_LEFT),
+            FALSE, FALSE, 0);
+
+    /* block state/current timecode */
+    gtk_box_pack_start(GTK_BOX (vbox),
+        hbox = gtk_hbox_new(TRUE, 0),
+            FALSE, FALSE, 0);
+    gtk_widget_show(hbox);
+
+    {
+        /* clip state */
+        gtk_box_pack_start(GTK_BOX (hbox),
+            player->label_state = create_label(top, "PLAYING", NULL, GTK_JUSTIFY_LEFT),
+                TRUE, TRUE, 0);
+
+        /* current timecode */
+        gtk_box_pack_start(GTK_BOX (hbox),
+            player->label_tc_cur = create_label(top, "00:00:00:00", NULL, GTK_JUSTIFY_LEFT),
+                TRUE, TRUE, 0);
+    };
+
+    /* block remain label/remain timecode */
+    gtk_box_pack_start(GTK_BOX (vbox),
+        hbox = gtk_hbox_new(TRUE, 0),
+            FALSE, FALSE, 0);
+    gtk_widget_show (hbox);
+
+    {
+        /* label */
+        gtk_box_pack_start(GTK_BOX (hbox),
+            create_label(top, "remain:", NULL, GTK_JUSTIFY_LEFT),
+                TRUE, TRUE, 0);
+
+        /* remaining timecode */
+        gtk_box_pack_start(GTK_BOX (hbox),
+            player->label_tc_rem = create_label(top, "00:00:00:00", NULL, GTK_JUSTIFY_LEFT),
+                TRUE, TRUE, 0);
+    };
 
     return frame;
 }
