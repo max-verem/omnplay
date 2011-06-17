@@ -73,6 +73,8 @@ int omnplay_opt(int argc, char** argv, omnplay_instance_t* app)
                     *p = 0;
                     strncpy(app->players.item[app->players.count].name, optarg, PATH_MAX);
                     strncpy(app->players.item[app->players.count].host, p + 1, PATH_MAX);
+                    app->players.item[app->players.count].idx = app->players.count;
+                    app->players.item[app->players.count].app = app;
                     app->players.count++;
                 };
                 break;

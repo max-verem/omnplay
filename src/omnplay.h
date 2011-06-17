@@ -53,14 +53,18 @@ typedef enum control_buttons
 
 #define MAX_PLAYERS 4
 
+struct omnplay_instance;
+
 typedef struct omnplay_player
 {
+    int idx;
     char name[PATH_MAX];
     char host[PATH_MAX];
     void* handle;
     pthread_t thread;
     pthread_mutex_t lock;
     GtkWidget *label_status, *label_state, *label_tc_cur, *label_tc_rem, *label_clip;
+    struct omnplay_instance *app;
 }
 omnplay_player_t;
 
