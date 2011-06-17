@@ -36,7 +36,7 @@
 
 int main(int argc, char **argv)
 {
-    char path[ 512 ];
+    char path[ 512 ], *buf;
     omnplay_instance_t *app = NULL;
 
 #ifdef ENABLE_NLS
@@ -53,17 +53,25 @@ int main(int argc, char **argv)
 #ifdef _WIN32
 #else
     // Linux hack to determine path of the executable
-    readlink( "/proc/self/exe", path, 512);
-    if ( strstr( path, "/bin/rugen" ) )
+    memset(path, 0, sizeof(path));
+    readlink( "/proc/self/exe", path, sizeof(path));
+    g_warning ("path=(%s)\n", path);
+    if((buf = strstr(path, "/bin/omnplay")))
     {
-        ( *strstr( path, "/bin/rugen" ) ) = '\0';
-        strcat( path, "/share/rugen/pixmaps" );
-        add_pixmap_directory( path );
+        buf[0] = 0;
+        strcat(path, "/share/rugen/pixmaps");
+    }
+    else if((buf = strstr(path, "/src/omnplay")))
+    {
+        buf[0] = 0;
+        strcat( path, "/pixmaps" );
     }
     else
-    {
-        add_pixmap_directory( PACKAGE_DATA_DIR "/" PACKAGE "/pixmaps" );
-    }
+        snprintf(path, sizeof(path), "%s/%s/pixmaps", PACKAGE_DATA_DIR, PACKAGE);
+
+    add_pixmap_directory( path );
+    g_warning ("add_pixmap_directory(%s)\n", path);
+
 #endif /* _WIN32 */
 
     app = omnplay_create(argc, argv);
