@@ -67,6 +67,8 @@ omnplay_player_t;
 typedef struct omnplay_instance
 {
     GtkWidget *window;
+    GtkWidget *playlist;
+    GtkWidget *library;
     GtkWidget *buttons[BUTTON_LAST + 1];
     struct
     {

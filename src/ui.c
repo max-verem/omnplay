@@ -99,7 +99,7 @@ static GtkWidget* pane_library_grid(GtkWidget* top, omnplay_instance_t* app)
         GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 
     gtk_container_add (GTK_CONTAINER (scrolledwindow),
-        create_treeview(top, "treeview_library", columns));
+        app->library = create_treeview(top, "treeview_library", columns));
 
     return scrolledwindow;
 }
@@ -318,7 +318,7 @@ static GtkWidget* pane_operate_grid(GtkWidget* top, omnplay_instance_t* app)
         GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 
     gtk_container_add (GTK_CONTAINER (scrolledwindow),
-        create_treeview(top, "treeview_playlist", columns));
+        app->playlist = create_treeview(top, "treeview_playlist", columns));
 
     return scrolledwindow;
 }
