@@ -51,16 +51,37 @@ typedef enum control_buttons
     BUTTON_LAST
 } control_buttons_t;
 
+#define MAX_PLAYERS 4
+
+typedef struct omnplay_player
+{
+    char name[PATH_MAX];
+    char host[PATH_MAX];
+    void* handle;
+    pthread_t thread;
+    pthread_mutex_t lock;
+    GtkWidget *label_status, *label_state, *label_cur, *label_rem, *label_clip;
+}
+omnplay_player_t;
+
 typedef struct omnplay_instance
 {
     GtkWidget *window;
     GtkWidget *buttons[BUTTON_LAST + 1];
+    struct
+    {
+        omnplay_player_t item[MAX_PLAYERS];
+        int count;
+        char path[PATH_MAX];
+    } players;
+    int f_exit;
 }
 omnplay_instance_t;
 
 omnplay_instance_t* omnplay_create(int argc, char** argv);
 void omnplay_init(omnplay_instance_t* app);
-void omnplay_close(omnplay_instance_t* app);
+void omnplay_release(omnplay_instance_t* app);
+void omnplay_destroy(omnplay_instance_t* app);
 
 #ifdef __cplusplus
 };

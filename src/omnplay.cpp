@@ -29,6 +29,7 @@
 
 #include "omnplay.h"
 #include "ui.h"
+#include "opts.h"
 
 #include "omplrclnt.h"
 
@@ -41,19 +42,28 @@ static gboolean on_main_window_delete_event( GtkWidget *widget, GdkEvent *event,
 
 omnplay_instance_t* omnplay_create(int argc, char** argv)
 {
+    int i, c;
     omnplay_instance_t* app;
 
+    /* prepare application instance */
     app = (omnplay_instance_t*)malloc(sizeof(omnplay_instance_t));
     memset(app, 0, sizeof(omnplay_instance_t));
 
-    app->window = ui_omnplay(app);
+    /* load parameters from command line */
+    if(!omnplay_opt(argc, argv, app) && app->players.count)
+        app->window = ui_omnplay(app);
+    else
+        omnplay_usage();
 
     return app;
 };
 
-void omnplay_close(omnplay_instance_t* app)
+
+void omnplay_destroy(omnplay_instance_t* app)
 {
+    free(app);
 };
+
 
 #if 0
 static void test()
@@ -114,4 +124,8 @@ void omnplay_init(omnplay_instance_t* app)
 #if 0
     test();
 #endif
+};
+
+void omnplay_release(omnplay_instance_t* app)
+{
 };

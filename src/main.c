@@ -75,14 +75,18 @@ int main(int argc, char **argv)
 #endif /* _WIN32 */
 
     app = omnplay_create(argc, argv);
-    gtk_widget_show (app->window);
 
-    gdk_threads_enter();
-    omnplay_init(app);
-    gtk_main ();
-    gdk_threads_leave();
+    if(app->window)
+    {
+        gtk_widget_show (app->window);
+        gdk_threads_enter();
+        omnplay_init(app);
+        gtk_main ();
+        omnplay_release(app);
+        gdk_threads_leave();
+    };
 
-    omnplay_close(app);
+    omnplay_destroy(app);
 
     return 0;
 }
