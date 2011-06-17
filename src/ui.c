@@ -148,18 +148,44 @@ static GtkWidget* pane_library(GtkWidget* top, omnplay_instance_t* app)
     return vbox;
 }
 
-static GtkWidget* pane_operate_status(GtkWidget* top, omnplay_instance_t* app)
+static GtkWidget* create_channel_status(GtkWidget* top, omnplay_instance_t* app, int idx)
 {
     GtkWidget* frame;
 
-    frame = gtk_frame_new ("STATUS");
-    gtk_frame_set_shadow_type(GTK_FRAME(frame), GTK_SHADOW_IN);
+    frame = gtk_frame_new (app->players.item[idx].name);
+//    gtk_frame_set_shadow_type(GTK_FRAME(frame), GTK_SHADOW_IN);
     gtk_widget_show(frame);
 
-    gtk_container_add(GTK_CONTAINER(frame),
-        create_label(top, "status here", NULL, GTK_JUSTIFY_CENTER));
-
     return frame;
+}
+
+static GtkWidget* pane_operate_status(GtkWidget* top, omnplay_instance_t* app)
+{
+    int i;
+    GtkWidget* vbox;
+
+    vbox = gtk_vbox_new (FALSE, 0);
+    gtk_widget_show (vbox);
+    gtk_widget_set_size_request(vbox, 250, -1);
+
+    for(i = 0; i < app->players.count; i++)
+    {
+        gtk_box_pack_start (GTK_BOX (vbox),
+            create_channel_status(top, app, i),
+                FALSE, FALSE, 0);
+
+        /* spacer */
+        gtk_box_pack_start (GTK_BOX (vbox),
+            create_label(top, NULL, NULL, GTK_JUSTIFY_CENTER),
+                FALSE, FALSE, 0);
+    }
+
+    /* spacer */
+    gtk_box_pack_start (GTK_BOX (vbox),
+        create_label(top, NULL, NULL, GTK_JUSTIFY_CENTER),
+            TRUE, TRUE, 0);
+
+    return vbox;
 }
 
 static GtkWidget* pane_operate_buttons_playlist(GtkWidget* top, omnplay_instance_t* app)
