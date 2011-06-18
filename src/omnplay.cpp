@@ -205,7 +205,11 @@ static gboolean omnplay_button_click(omnplay_instance_t* app, control_buttons_t 
         case BUTTON_PLAYLIST_ITEM_DEL:
         case BUTTON_PLAYLIST_ITEM_EDIT:
         case BUTTON_PLAYLIST_LOAD:
+            omnplay_playlist_load(app);
+            break;
         case BUTTON_PLAYLIST_SAVE:
+            omnplay_playlist_save(app);
+            break;
         case BUTTON_PLAYLIST_BLOCK_SINGLE:
         case BUTTON_PLAYLIST_BLOCK_LOOP:
         case BUTTON_PLAYLIST_ITEM_UP:
@@ -277,4 +281,7 @@ void omnplay_release(omnplay_instance_t* app)
         pthread_mutex_destroy(&app->players.item[i].lock);
 
     };
+
+    /* create lock */
+    pthread_mutex_destroy(&app->playlist.lock);
 };

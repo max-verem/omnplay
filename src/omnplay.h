@@ -140,6 +140,8 @@ omnplay_instance_t* omnplay_create(int argc, char** argv);
 void omnplay_init(omnplay_instance_t* app);
 void omnplay_release(omnplay_instance_t* app);
 void omnplay_destroy(omnplay_instance_t* app);
+void omnplay_playlist_load(omnplay_instance_t* app);
+void omnplay_playlist_save(omnplay_instance_t* app);
 
 #ifdef __cplusplus
 };
