@@ -26,6 +26,7 @@ extern "C"
 #endif /* __cplusplus */
 
 char* frames2tc(int f, float fps, char* buf);
+int tc2frames(char* tc, float fps, int *f);
 
 #ifdef __cplusplus
 };

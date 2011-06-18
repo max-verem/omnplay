@@ -42,3 +42,17 @@ char* frames2tc(int f, float fps, char* buf)
 }
 
 
+int tc2frames(char* tc, float fps, int *f)
+{
+    int hh, mm, ss, ff;
+
+    *f = 0;
+
+    if(4 != sscanf(tc, "%d:%d:%d:%d",
+        &hh, &mm, &ss, &ff))
+        return -1;
+
+    *f = ff + fps * (ss + 60 * (mm + 60 * hh));
+
+    return 0;
+}
