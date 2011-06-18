@@ -83,6 +83,8 @@ static GtkWidget* create_treeview(GtkWidget* top, char* name, const char* column
         gtk_tree_view_append_column(GTK_TREE_VIEW( treeview ), column);
     };
 
+    g_object_unref(list_store);
+
     GLADE_HOOKUP_OBJECT (top, treeview, name);
 
     return treeview;

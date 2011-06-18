@@ -197,6 +197,43 @@ static void* omnplay_thread_proc(void* data)
     return NULL;
 };
 
+static gboolean omnplay_button_click(omnplay_instance_t* app, control_buttons_t button)
+{
+    switch(button)
+    {
+        case BUTTON_PLAYLIST_ITEM_ADD:
+        case BUTTON_PLAYLIST_ITEM_DEL:
+        case BUTTON_PLAYLIST_ITEM_EDIT:
+        case BUTTON_PLAYLIST_LOAD:
+        case BUTTON_PLAYLIST_SAVE:
+        case BUTTON_PLAYLIST_BLOCK_SINGLE:
+        case BUTTON_PLAYLIST_BLOCK_LOOP:
+        case BUTTON_PLAYLIST_ITEM_UP:
+        case BUTTON_PLAYLIST_ITEM_DOWN:
+        case BUTTON_PLAYER_CUE:
+        case BUTTON_PLAYER_PLAY:
+        case BUTTON_PLAYER_PAUSE:
+        case BUTTON_PLAYER_STOP:
+        case BUTTON_LIBRARY_ADD:
+        case BUTTON_LIBRARY_REFRESH:
+            break;
+    };
+
+    return TRUE;
+};
+
+static gboolean on_button_click(GtkWidget *button, gpointer user_data)
+{
+    int i;
+    omnplay_instance_t* app = (omnplay_instance_t*)user_data;
+
+    for(i = 1; i < BUTTON_LAST; i++)
+        if(app->buttons[i] == button)
+            return omnplay_button_click(app, (control_buttons_t)i);
+
+    return FALSE;
+};
+
 void omnplay_init(omnplay_instance_t* app)
 {
     int i;
@@ -213,6 +250,15 @@ void omnplay_init(omnplay_instance_t* app)
         pthread_create(&app->players.item[i].thread, NULL,
             omnplay_thread_proc, &app->players.item[i]);
     };
+
+    /* create lock */
+    pthread_mutex_init(&app->playlist.lock, NULL);
+
+    /* attach buttons click */
+    for(i = 1; i < BUTTON_LAST; i++)
+        gtk_signal_connect(GTK_OBJECT(app->buttons[i]), "clicked",
+            GTK_SIGNAL_FUNC( on_button_click), app );
+
 };
 
 void omnplay_release(omnplay_instance_t* app)

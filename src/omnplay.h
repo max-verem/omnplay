@@ -132,6 +132,7 @@ typedef struct omnplay_instance
         int count;
         int ver_curr;
         int ver_prev;
+        pthread_mutex_t lock;
     } playlist;
 } omnplay_instance_t;
 
