@@ -1,5 +1,5 @@
 /*
- * playlist.c -- GTK+ 2 omnplay
+ * timecode.c -- GTK+ 2 omnplay
  * Copyright (C) 2011 Maksym Veremeyenko <verem@m1stereo.tv>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -17,26 +17,28 @@
  * Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifdef HAVE_CONFIG_H
-#  include <config.h>
-#endif
-
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <gtk/gtk.h>
-#include <gdk/gdkkeysyms.h>
-#include <pthread.h>
 
-#include "omnplay.h"
-#include "ui.h"
-#include "timecode.h"
-
-void omnplay_playlist_load(omnplay_instance_t* app)
+char* frames2tc(int f, float fps, char* buf)
 {
-};
+    int tc[4] = { 0, 0, 0, 0 };
+    float d;
+    int t;
 
-void omnplay_playlist_save(omnplay_instance_t* app)
-{
-};
+    if ( fps && f >= 0)
+    {
+        d = f / fps;
+        t = d;
+
+        tc[0] = (d - t) * fps;
+        tc[1] = t % 60; t /= 60;
+        tc[2] = t % 60; t /= 60;
+        tc[3] = t % 24;
+    }
+
+    sprintf(buf, "%.2d:%.2d:%.2d:%.2d", tc[3], tc[2], tc[1], tc[0]);
+
+    return buf;
+}
+
 

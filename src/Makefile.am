@@ -14,6 +14,7 @@ omnplay_SOURCES = \
 	ui_buttons.c ui_buttons.h \
 	opts.c opts.h \
 	playlist.c \
+	timecode.c timecode.h \
 	omnplay.cpp omnplay.h
 
 omnplay_LDADD = @GTHREAD_LIBS@ @GTK_LIBS@ @OM_LIBS@

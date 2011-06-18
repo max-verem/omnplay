@@ -31,31 +31,9 @@
 #include "omnplay.h"
 #include "ui.h"
 #include "opts.h"
+#include "timecode.h"
 
 #include "omplrclnt.h"
-
-static char* frames2tc( int f, float fps, char* buf )
-{
-    int tc[4] = { 0, 0, 0, 0 };
-    float d;
-    int t;
-
-    if ( fps && f >= 0)
-    {
-        d = f / fps;
-        t = d;
-
-        tc[0] = (d - t) * fps;
-        tc[1] = t % 60; t /= 60;
-        tc[2] = t % 60; t /= 60;
-        tc[3] = t % 24;
-    }
-
-    sprintf(buf, "%.2d:%.2d:%.2d:%.2d", tc[3], tc[2], tc[1], tc[0]);
-
-    return buf;
-}
-
 
 static gboolean on_main_window_delete_event( GtkWidget *widget, GdkEvent *event, gpointer user_data )
 {
