@@ -51,6 +51,50 @@ typedef enum control_buttons
     BUTTON_LAST
 } control_buttons_t;
 
+#define OMNPLAY_PLAYLIST_BLOCK_BEGIN    (1 << 0)        // 1
+#define OMNPLAY_PLAYLIST_BLOCK_BODY     0               // 0
+#define OMNPLAY_PLAYLIST_BLOCK_END      (1 << 1)        // 2
+#define OMNPLAY_PLAYLIST_BLOCK_LOOP     (1 << 2)        // 4
+
+typedef enum playlist_item_type
+{
+    OMNPLAY_PLAYLIST_ITEM_BLOCK_BEGIN   =       OMNPLAY_PLAYLIST_BLOCK_BEGIN,
+
+    OMNPLAY_PLAYLIST_ITEM_BLOCK_BODY    =       OMNPLAY_PLAYLIST_BLOCK_BODY,
+
+    OMNPLAY_PLAYLIST_ITEM_BLOCK_END     =       OMNPLAY_PLAYLIST_BLOCK_END,
+
+    OMNPLAY_PLAYLIST_ITEM_BLOCK_SINGLE  =       OMNPLAY_PLAYLIST_BLOCK_END      | \
+                                                OMNPLAY_PLAYLIST_BLOCK_BODY     | \
+                                                OMNPLAY_PLAYLIST_BLOCK_END,
+
+    OMNPLAY_PLAYLIST_ITEM_LOOP_BEGIN    =       OMNPLAY_PLAYLIST_BLOCK_BEGIN    | \
+                                                OMNPLAY_PLAYLIST_BLOCK_LOOP,
+
+    OMNPLAY_PLAYLIST_ITEM_LOOP_BODY     =       OMNPLAY_PLAYLIST_BLOCK_BODY     | \
+                                                OMNPLAY_PLAYLIST_BLOCK_LOOP,
+
+    OMNPLAY_PLAYLIST_ITEM_LOOP_END      =       OMNPLAY_PLAYLIST_BLOCK_END      | \
+                                                OMNPLAY_PLAYLIST_BLOCK_LOOP,
+
+    OMNPLAY_PLAYLIST_ITEM_LOOP_SINGLE   =       OMNPLAY_PLAYLIST_BLOCK_END      | \
+                                                OMNPLAY_PLAYLIST_BLOCK_BODY     | \
+                                                OMNPLAY_PLAYLIST_BLOCK_END      | \
+                                                OMNPLAY_PLAYLIST_BLOCK_LOOP,
+} playlist_item_type_t;
+
+#define MAX_PLAYLIST_ITEMS      1024
+
+typedef struct playlist_item
+{
+    char id[PATH_MAX];
+    char title[PATH_MAX];
+    int in;
+    int dur;
+    int player;
+    playlist_item_type_t type;
+} playlist_item_t;
+
 #define MAX_PLAYERS 4
 
 struct omnplay_instance;
@@ -65,14 +109,15 @@ typedef struct omnplay_player
     pthread_mutex_t lock;
     GtkWidget *label_status, *label_state, *label_tc_cur, *label_tc_rem, *label_clip;
     struct omnplay_instance *app;
-}
-omnplay_player_t;
+    int playlist_start;
+    int playlist_count;
+} omnplay_player_t;
 
 typedef struct omnplay_instance
 {
     GtkWidget *window;
-    GtkWidget *playlist;
-    GtkWidget *library;
+    GtkWidget *playlist_grid;
+    GtkWidget *library_grid;
     GtkWidget *buttons[BUTTON_LAST + 1];
     struct
     {
@@ -81,8 +126,14 @@ typedef struct omnplay_instance
         char path[PATH_MAX];
     } players;
     int f_exit;
-}
-omnplay_instance_t;
+    struct
+    {
+        playlist_item_t item[MAX_PLAYLIST_ITEMS];
+        int count;
+        int ver_curr;
+        int ver_prev;
+    } playlist;
+} omnplay_instance_t;
 
 omnplay_instance_t* omnplay_create(int argc, char** argv);
 void omnplay_init(omnplay_instance_t* app);
