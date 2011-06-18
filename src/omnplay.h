@@ -133,6 +133,7 @@ typedef struct omnplay_instance
         int ver_curr;
         int ver_prev;
         pthread_mutex_t lock;
+        char* path;
     } playlist;
 } omnplay_instance_t;
 
@@ -142,6 +143,7 @@ void omnplay_release(omnplay_instance_t* app);
 void omnplay_destroy(omnplay_instance_t* app);
 void omnplay_playlist_load(omnplay_instance_t* app);
 void omnplay_playlist_save(omnplay_instance_t* app);
+void omnplay_playlist_draw(omnplay_instance_t* app);
 
 #ifdef __cplusplus
 };
