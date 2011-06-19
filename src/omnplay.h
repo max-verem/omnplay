@@ -134,6 +134,7 @@ typedef struct omnplay_instance
         int ver_prev;
         pthread_mutex_t lock;
         char* path;
+        GdkPixbuf *block_icons[8];
     } playlist;
 } omnplay_instance_t;
 

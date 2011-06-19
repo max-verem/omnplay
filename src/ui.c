@@ -514,5 +514,22 @@ GtkWidget* ui_omnplay (omnplay_instance_t* app)
     gtk_container_add (GTK_CONTAINER (wnd),
         pane_top(wnd, app));
 
+    app->playlist.block_icons[OMNPLAY_PLAYLIST_ITEM_BLOCK_BEGIN] =
+        create_pixbuf("block_type_block_start_16x16.png");
+    app->playlist.block_icons[OMNPLAY_PLAYLIST_ITEM_BLOCK_BODY] =
+        create_pixbuf("block_type_block_middle_16x16.png");
+    app->playlist.block_icons[OMNPLAY_PLAYLIST_ITEM_BLOCK_END] =
+        create_pixbuf("block_type_block_end_16x16.png");
+    app->playlist.block_icons[OMNPLAY_PLAYLIST_ITEM_BLOCK_SINGLE] =
+        create_pixbuf("block_type_block_single_16x16.png");
+    app->playlist.block_icons[OMNPLAY_PLAYLIST_ITEM_LOOP_BEGIN] =
+        create_pixbuf("block_type_loop_start_16x16.png");
+    app->playlist.block_icons[OMNPLAY_PLAYLIST_ITEM_LOOP_BODY] =
+        create_pixbuf("block_type_loop_middle_16x16.png");
+    app->playlist.block_icons[OMNPLAY_PLAYLIST_ITEM_LOOP_END] =
+        create_pixbuf("block_type_loop_end_16x16.png");
+    app->playlist.block_icons[OMNPLAY_PLAYLIST_ITEM_LOOP_SINGLE] =
+        create_pixbuf("block_type_block_loop_16x16.png");
+
     return wnd;
 }
