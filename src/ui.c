@@ -131,7 +131,7 @@ static GtkWidget* create_treeview(GtkWidget* top, char* name, const column_desc_
 
     for(i = 0, count = 0; columns[i].title; i++, count++)
         list_store_types[i] = (columns[i].type == G_TYPE_OBJECT)?GDK_TYPE_PIXBUF:columns[i].type;
-    list_store_types[count + 1] = G_TYPE_INT;
+    list_store_types[count] = G_TYPE_INT;
 
     list_store = gtk_list_store_newv(count + 1, list_store_types);
 
