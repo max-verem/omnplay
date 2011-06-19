@@ -87,12 +87,33 @@ static int load_file_ply(omnplay_instance_t* app, char* filename)
                         case 4: items[count].type = OMNPLAY_PLAYLIST_ITEM_LOOP_END; break;
                         case 6: items[count].type = OMNPLAY_PLAYLIST_ITEM_BLOCK_END; break;
                         case 0:
-                            if(!count || items[count - 1].type != OMNPLAY_PLAYLIST_ITEM_BLOCK_BODY)
+                            if(!count)
                                 items[count].type = OMNPLAY_PLAYLIST_ITEM_BLOCK_BEGIN;
-                            else
+                            else if(items[count - 1].type == OMNPLAY_PLAYLIST_ITEM_BLOCK_BEGIN ||
+                                    items[count - 1].type == OMNPLAY_PLAYLIST_ITEM_BLOCK_BODY)
                                 items[count].type = OMNPLAY_PLAYLIST_ITEM_BLOCK_BODY;
+                            else
+                                items[count].type = OMNPLAY_PLAYLIST_ITEM_BLOCK_BEGIN;
                             break;
                     };
+
+                    {
+                        char* n;
+                        switch(items[count].type)
+                        {
+                            case OMNPLAY_PLAYLIST_ITEM_BLOCK_BEGIN:       n = "BLOCK_BEGIN"; break;
+                            case OMNPLAY_PLAYLIST_ITEM_BLOCK_BODY:        n = "BLOCK_BODY"; break;
+                            case OMNPLAY_PLAYLIST_ITEM_BLOCK_END:         n = "BLOCK_END"; break;
+                            case OMNPLAY_PLAYLIST_ITEM_BLOCK_SINGLE:      n = "BLOCK_SINGLE"; break;
+                            case OMNPLAY_PLAYLIST_ITEM_LOOP_BEGIN:        n = "LOOP_BEGIN"; break;
+                            case OMNPLAY_PLAYLIST_ITEM_LOOP_BODY:         n = "LOOP_BODY"; break;
+                            case OMNPLAY_PLAYLIST_ITEM_LOOP_END:          n = "LOOP_END"; break;
+                            case OMNPLAY_PLAYLIST_ITEM_LOOP_SINGLE:       n = "LOOP_SINGLE"; break;
+                        };
+                        fprintf(stderr, "src=[%s]\ndst=[idx=%d,block=%s,block_id=%d,in=%d,out=%d]\n",
+                            l, count, n, items[count].type, items[count].in, items[count].dur);
+                    };
+
 
                     count++;
                 }
@@ -191,7 +212,7 @@ void omnplay_playlist_draw(omnplay_instance_t* app)
             2, (0 == app->playlist.item[i].player)?"A":"B",
             3, app->playlist.item[i].id,
             4, frames2tc(app->playlist.item[i].in, 25.0, tc1),
-            5, frames2tc(app->playlist.item[i].in, 25.0, tc2),
+            5, frames2tc(app->playlist.item[i].dur, 25.0, tc2),
             6, app->playlist.item[i].title,
             -1 );
     }

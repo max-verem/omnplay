@@ -51,35 +51,36 @@ typedef enum control_buttons
     BUTTON_LAST
 } control_buttons_t;
 
-#define OMNPLAY_PLAYLIST_BLOCK_BEGIN    (1 << 0)        // 1
-#define OMNPLAY_PLAYLIST_BLOCK_BODY     0               // 0
-#define OMNPLAY_PLAYLIST_BLOCK_END      (1 << 1)        // 2
-#define OMNPLAY_PLAYLIST_BLOCK_LOOP     (1 << 2)        // 4
+#define OMNPLAY_PLAYLIST_BLOCK_BEGIN    1
+#define OMNPLAY_PLAYLIST_BLOCK_BODY     0
+#define OMNPLAY_PLAYLIST_BLOCK_END      2
+#define OMNPLAY_PLAYLIST_BLOCK_LOOP     4
 
 typedef enum playlist_item_type
 {
+    // 1
     OMNPLAY_PLAYLIST_ITEM_BLOCK_BEGIN   =       OMNPLAY_PLAYLIST_BLOCK_BEGIN,
-
+    // 0
     OMNPLAY_PLAYLIST_ITEM_BLOCK_BODY    =       OMNPLAY_PLAYLIST_BLOCK_BODY,
-
+    // 2
     OMNPLAY_PLAYLIST_ITEM_BLOCK_END     =       OMNPLAY_PLAYLIST_BLOCK_END,
-
-    OMNPLAY_PLAYLIST_ITEM_BLOCK_SINGLE  =       OMNPLAY_PLAYLIST_BLOCK_END      | \
-                                                OMNPLAY_PLAYLIST_BLOCK_BODY     | \
+    // 3
+    OMNPLAY_PLAYLIST_ITEM_BLOCK_SINGLE  =       OMNPLAY_PLAYLIST_BLOCK_BEGIN    |
+                                                OMNPLAY_PLAYLIST_BLOCK_BODY     |
                                                 OMNPLAY_PLAYLIST_BLOCK_END,
-
-    OMNPLAY_PLAYLIST_ITEM_LOOP_BEGIN    =       OMNPLAY_PLAYLIST_BLOCK_BEGIN    | \
+    // 5
+    OMNPLAY_PLAYLIST_ITEM_LOOP_BEGIN    =       OMNPLAY_PLAYLIST_BLOCK_BEGIN    |
                                                 OMNPLAY_PLAYLIST_BLOCK_LOOP,
-
-    OMNPLAY_PLAYLIST_ITEM_LOOP_BODY     =       OMNPLAY_PLAYLIST_BLOCK_BODY     | \
+    // 4
+    OMNPLAY_PLAYLIST_ITEM_LOOP_BODY     =       OMNPLAY_PLAYLIST_BLOCK_BODY     |
                                                 OMNPLAY_PLAYLIST_BLOCK_LOOP,
-
-    OMNPLAY_PLAYLIST_ITEM_LOOP_END      =       OMNPLAY_PLAYLIST_BLOCK_END      | \
+    // 6
+    OMNPLAY_PLAYLIST_ITEM_LOOP_END      =       OMNPLAY_PLAYLIST_BLOCK_END      |
                                                 OMNPLAY_PLAYLIST_BLOCK_LOOP,
-
-    OMNPLAY_PLAYLIST_ITEM_LOOP_SINGLE   =       OMNPLAY_PLAYLIST_BLOCK_END      | \
-                                                OMNPLAY_PLAYLIST_BLOCK_BODY     | \
-                                                OMNPLAY_PLAYLIST_BLOCK_END      | \
+    // 7
+    OMNPLAY_PLAYLIST_ITEM_LOOP_SINGLE   =       OMNPLAY_PLAYLIST_BLOCK_BEGIN    |
+                                                OMNPLAY_PLAYLIST_BLOCK_BODY     |
+                                                OMNPLAY_PLAYLIST_BLOCK_END      |
                                                 OMNPLAY_PLAYLIST_BLOCK_LOOP,
 } playlist_item_type_t;
 
