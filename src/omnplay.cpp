@@ -175,6 +175,60 @@ static void* omnplay_thread_proc(void* data)
     return NULL;
 };
 
+static void omnplay_cue(omnplay_instance_t* app)
+{
+    int idx, start, stop;
+    GtkTreeIter iter;
+    GtkTreeModel *model;
+    GtkTreeSelection *selection;
+    omnplay_player_t *player;
+
+    pthread_mutex_lock(&app->playlist.lock);
+
+    selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(app->playlist_grid));
+    if(selection && gtk_tree_selection_get_selected(selection, &model, &iter))
+    {
+        gtk_tree_model_get(model, &iter, 7, &idx, -1);
+
+        fprintf(stderr, "cue: selected item is %d\n", idx);
+
+        for(start = idx; start >= 0; start--)
+            if(app->playlist.item[start].type & OMNPLAY_PLAYLIST_BLOCK_BEGIN)
+                break;
+
+        for(stop = idx; stop < app->playlist.count; stop++)
+            if(app->playlist.item[stop].type & OMNPLAY_PLAYLIST_BLOCK_END)
+                break;
+
+        /* check block range */
+        if(start >= 0 && stop < app->playlist.count)
+        {
+            fprintf(stderr, "cue: range %d -> %d\n", start, stop);
+
+            /* check player range */
+            if(app->playlist.item[start].player > -1 && app->playlist.item[start].player <  player->app->players.count)
+            {
+                player = &app->players.item[app->playlist.item[start].player];
+
+                /* 1. stop */
+                pthread_mutex_lock(&app->players.lock);
+                OmPlrStop((OmPlrHandle)player->handle);
+                pthread_mutex_unlock(&app->players.lock);
+
+                /* 2. detach previous clips */
+                pthread_mutex_lock(&app->players.lock);
+                OmPlrDetachAllClips((OmPlrHandle)player->handle);
+                pthread_mutex_unlock(&app->players.lock);
+
+                // http://research.m1stereo.tv/viewvc-int/viewvc.cgi/Ingest2Srv/trunk/SrvPlayCtl.cpp?view=markup
+            };
+        };
+    };
+
+    pthread_mutex_unlock(&app->playlist.lock);
+
+};
+
 static gboolean omnplay_button_click(omnplay_instance_t* app, control_buttons_t button)
 {
     switch(button)
@@ -193,6 +247,7 @@ static gboolean omnplay_button_click(omnplay_instance_t* app, control_buttons_t 
         case BUTTON_PLAYLIST_ITEM_UP:
         case BUTTON_PLAYLIST_ITEM_DOWN:
         case BUTTON_PLAYER_CUE:
+            omnplay_cue(app);
         case BUTTON_PLAYER_PLAY:
         case BUTTON_PLAYER_PAUSE:
         case BUTTON_PLAYER_STOP:
