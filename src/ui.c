@@ -133,31 +133,29 @@ static GtkWidget* create_treeview(GtkWidget* top, char* name, const column_desc_
         list_store_types[i] = (columns[i].type == G_TYPE_OBJECT)?GDK_TYPE_PIXBUF:columns[i].type;
 
     list_store = gtk_list_store_newv(count, list_store_types);
+
     gtk_tree_view_set_model( GTK_TREE_VIEW( treeview ), GTK_TREE_MODEL( list_store ) );
 
     for(i = 0; columns[i].title; i++)
     {
         char* prop;
 
-        if(list_store_types[i] == G_TYPE_STRING)
-        {
-            renderer = gtk_cell_renderer_text_new();
-            prop = "text";
-        }
-        else if(list_store_types[i] == G_TYPE_OBJECT)
+        if(columns[i].type == G_TYPE_OBJECT)
         {
             renderer = gtk_cell_renderer_pixbuf_new();
+            gtk_cell_renderer_set_padding(renderer, 0, 0);
             prop = "pixbuf";
         }
-        else if(list_store_types[i] == G_TYPE_BOOLEAN)
+        else if(columns[i].type == G_TYPE_BOOLEAN)
         {
             renderer = gtk_cell_renderer_toggle_new();
             prop = "active";
         }
         else
-            renderer = NULL;
-
-        if(!renderer) continue;
+        {
+            renderer = gtk_cell_renderer_text_new();
+            prop = "text";
+        }
 
         column = gtk_tree_view_column_new_with_attributes(
             columns[i].title, renderer, prop, i, NULL);
