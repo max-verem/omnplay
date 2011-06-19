@@ -107,7 +107,6 @@ typedef struct omnplay_player
     char host[PATH_MAX];
     void* handle;
     pthread_t thread;
-    pthread_mutex_t lock;
     GtkWidget *label_status, *label_state, *label_tc_cur, *label_tc_rem, *label_clip;
     struct omnplay_instance *app;
     int playlist_start;
@@ -125,6 +124,7 @@ typedef struct omnplay_instance
         omnplay_player_t item[MAX_PLAYERS];
         int count;
         char path[PATH_MAX];
+        pthread_mutex_t lock;
     } players;
     int f_exit;
     struct
