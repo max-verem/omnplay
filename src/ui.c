@@ -35,6 +35,69 @@
 #include "ui_buttons.h"
 #include "support.h"
 
+typedef struct column_desc
+{
+    char* title;
+    GType type;
+} column_desc_t;
+
+const static column_desc_t playlist_columns[] =
+{
+    {
+        "REM",
+        G_TYPE_STRING
+    },
+    {
+        "B",
+        G_TYPE_STRING
+    },
+    {
+        "CH",
+        G_TYPE_STRING
+    },
+    {
+        "ID",
+        G_TYPE_STRING
+    },
+    {
+        "IN",
+        G_TYPE_STRING
+    },
+    {
+        "DUR",
+        G_TYPE_STRING
+    },
+    {
+        "TITLE",
+        G_TYPE_STRING
+    },
+    {
+        NULL,
+        G_TYPE_STRING
+    }
+};
+
+const static column_desc_t library_columns[] =
+{
+    {
+        "ID",
+        G_TYPE_STRING
+    },
+    {
+        "DUR",
+        G_TYPE_STRING
+    },
+    {
+        "TITLE",
+        G_TYPE_STRING
+    },
+    {
+        NULL,
+        G_TYPE_STRING
+    }
+};
+
+
 static GtkWidget* create_label(GtkWidget* top, char* text, char* reg, GtkJustification jtype)
 {
     GtkWidget* label;
@@ -53,33 +116,30 @@ static GtkWidget* create_label(GtkWidget* top, char* text, char* reg, GtkJustifi
     return label;
 };
 
-static GtkWidget* create_treeview(GtkWidget* top, char* name, const char* columns[])
+static GtkWidget* create_treeview(GtkWidget* top, char* name, const column_desc_t columns[])
 {
-    int i;
+    int i, count;
 
     GtkWidget *treeview;
     GtkCellRenderer *renderer;
     GtkTreeViewColumn *column;
     GtkListStore *list_store;
+    GType list_store_types[32];
 
     treeview = gtk_tree_view_new ();
     gtk_widget_show (treeview);
 
-    list_store = gtk_list_store_new(7,
-        G_TYPE_STRING,
-        G_TYPE_STRING,
-        G_TYPE_STRING,
-        G_TYPE_STRING,
-        G_TYPE_STRING,
-        G_TYPE_STRING,
-        G_TYPE_STRING);
+    for(i = 0, count = 0; columns[i].title; i++, count++)
+        list_store_types[i] = columns[i].type;
+
+    list_store = gtk_list_store_newv(count, list_store_types);
     gtk_tree_view_set_model( GTK_TREE_VIEW( treeview ), GTK_TREE_MODEL( list_store ) );
 
-    for(i = 0; columns[i]; i++)
+    for(i = 0; columns[i].title; i++)
     {
         renderer = gtk_cell_renderer_toggle_new();
         column = gtk_tree_view_column_new_with_attributes(
-            columns[i], renderer, "text", i, NULL);
+            columns[i].title, renderer, "text", i, NULL);
         gtk_tree_view_append_column(GTK_TREE_VIEW( treeview ), column);
     };
 
@@ -92,7 +152,6 @@ static GtkWidget* create_treeview(GtkWidget* top, char* name, const char* column
 
 static GtkWidget* pane_library_grid(GtkWidget* top, omnplay_instance_t* app)
 {
-    static const char* columns[] = {"ID", "DUR", "TITLE", NULL};
     GtkWidget *scrolledwindow;
 
     scrolledwindow = gtk_scrolled_window_new (NULL, NULL);
@@ -101,7 +160,7 @@ static GtkWidget* pane_library_grid(GtkWidget* top, omnplay_instance_t* app)
         GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 
     gtk_container_add (GTK_CONTAINER (scrolledwindow),
-        app->library_grid = create_treeview(top, "treeview_library", columns));
+        app->library_grid = create_treeview(top, "treeview_library", library_columns));
 
     return scrolledwindow;
 }
@@ -311,7 +370,6 @@ static GtkWidget* pane_operate_buttons_playlist(GtkWidget* top, omnplay_instance
 
 static GtkWidget* pane_operate_grid(GtkWidget* top, omnplay_instance_t* app)
 {
-    static const char* columns[] = {"REM", "B", "CH", "ID", "IN", "DUR", "TITLE", NULL};
     GtkWidget *scrolledwindow;
 
     scrolledwindow = gtk_scrolled_window_new (NULL, NULL);
@@ -320,7 +378,7 @@ static GtkWidget* pane_operate_grid(GtkWidget* top, omnplay_instance_t* app)
         GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 
     gtk_container_add (GTK_CONTAINER (scrolledwindow),
-        app->playlist_grid = create_treeview(top, "treeview_playlist", columns));
+        app->playlist_grid = create_treeview(top, "treeview_playlist", playlist_columns));
 
     return scrolledwindow;
 }
