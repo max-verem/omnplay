@@ -149,12 +149,16 @@ static GtkWidget* create_treeview(GtkWidget* top, char* name, const column_desc_
             renderer = gtk_cell_renderer_pixbuf_new();
             prop = "pixbuf";
         }
+        else if(list_store_types[i] == G_TYPE_BOOLEAN)
+        {
+            renderer = gtk_cell_renderer_toggle_new();
+            prop = "active";
+        }
         else
             renderer = NULL;
 
         if(!renderer) continue;
 
-        renderer = gtk_cell_renderer_toggle_new();
         column = gtk_tree_view_column_new_with_attributes(
             columns[i].title, renderer, prop, i, NULL);
         gtk_tree_view_append_column(GTK_TREE_VIEW( treeview ), column);
