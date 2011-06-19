@@ -171,4 +171,32 @@ void omnplay_playlist_save(omnplay_instance_t* app)
 
 void omnplay_playlist_draw(omnplay_instance_t* app)
 {
+    int i;
+    char tc1[12], tc2[12];
+    GtkListStore *list_store;
+    GtkTreeIter iter;
+
+    list_store = GTK_LIST_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(app->playlist_grid)));
+    gtk_list_store_clear(list_store);
+
+    pthread_mutex_lock(&app->playlist.lock);
+
+    for(i = 0;i < app->playlist.count; i++)
+    {
+        gtk_list_store_append(list_store, &iter);
+
+        gtk_list_store_set(list_store, &iter,
+            0, "",
+            1, app->playlist.block_icons[app->playlist.item[i].type],
+            2, (0 == app->playlist.item[i].player)?"A":"B",
+            3, app->playlist.item[i].id,
+            4, frames2tc(app->playlist.item[i].in, 25.0, tc1),
+            5, frames2tc(app->playlist.item[i].in, 25.0, tc2),
+            6, app->playlist.item[i].title,
+            -1 );
+    }
+
+    app->playlist.ver_prev = app->playlist.ver_curr;
+
+    pthread_mutex_unlock(&app->playlist.lock);
 };
