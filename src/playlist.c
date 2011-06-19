@@ -214,6 +214,7 @@ void omnplay_playlist_draw(omnplay_instance_t* app)
             4, frames2tc(app->playlist.item[i].in, 25.0, tc1),
             5, frames2tc(app->playlist.item[i].dur, 25.0, tc2),
             6, app->playlist.item[i].title,
+            7, i,
             -1 );
     }
 
