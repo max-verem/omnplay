@@ -96,7 +96,7 @@ static int load_file_ply(omnplay_instance_t* app, char* filename)
                                 items[count].type = OMNPLAY_PLAYLIST_ITEM_BLOCK_BEGIN;
                             break;
                     };
-
+#if 0
                     {
                         char* n;
                         switch(items[count].type)
@@ -113,7 +113,7 @@ static int load_file_ply(omnplay_instance_t* app, char* filename)
                         fprintf(stderr, "src=[%s]\ndst=[idx=%d,block=%s,block_id=%d,in=%d,out=%d]\n",
                             l, count, n, items[count].type, items[count].in, items[count].dur);
                     };
-
+#endif
 
                     count++;
                 }
