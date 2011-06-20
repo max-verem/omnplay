@@ -112,7 +112,6 @@ typedef struct omnplay_player
     GtkWidget *label_status, *label_state, *label_tc_cur, *label_tc_rem, *label_clip;
     struct omnplay_instance *app;
     int playlist_start;
-    int playlist_count;
 } omnplay_player_t;
 
 typedef struct omnplay_instance
@@ -149,6 +148,7 @@ void omnplay_playlist_load(omnplay_instance_t* app);
 void omnplay_playlist_save(omnplay_instance_t* app);
 void omnplay_playlist_draw(omnplay_instance_t* app);
 void omnplay_playlist_draw_item(omnplay_instance_t* app, int idx);
+void omnplay_playlist_draw_item_rem(omnplay_instance_t* app, int idx, char* rem);
 
 #ifdef __cplusplus
 };

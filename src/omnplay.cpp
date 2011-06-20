@@ -68,8 +68,25 @@ void omnplay_destroy(omnplay_instance_t* app)
     free(app);
 };
 
+static int find_index_of_playlist_item(omnplay_instance_t* app, int start, int idx)
+{
+    while(1)
+    {
+        if(app->playlist.item[start].omn_idx == idx)
+            return start;
+
+        if(app->playlist.item[start].type & OMNPLAY_PLAYLIST_BLOCK_END)
+            break;
+
+        start++;
+    };
+
+    return -1;
+};
+
 static void omnplay_update_status(omnplay_player_t* player, OmPlrStatus *prev , OmPlrStatus *curr)
 {
+    int idx;
     char tc_cur[32], tc_rem[32], state[32], status[32];
     const char *clip;
 
@@ -98,6 +115,7 @@ static void omnplay_update_status(omnplay_player_t* player, OmPlrStatus *prev , 
         strcpy(status, "OFFLINE");
     };
 
+    /* update status in status page */
     gdk_threads_enter();
     gtk_label_set_text(GTK_LABEL (player->label_tc_cur), tc_cur);
     gtk_label_set_text(GTK_LABEL (player->label_tc_rem), tc_rem);
@@ -106,6 +124,42 @@ static void omnplay_update_status(omnplay_player_t* player, OmPlrStatus *prev , 
     gtk_label_set_text(GTK_LABEL (player->label_clip), clip);
     gdk_flush();
     gdk_threads_leave();
+
+    /* update remaining time */
+    gdk_threads_enter();
+    pthread_mutex_lock(&player->app->playlist.lock);
+    pthread_mutex_lock(&player->app->players.lock);
+    if(curr->state == omPlrStatePlay || curr->state == omPlrStateCuePlay)
+    {
+        idx = find_index_of_playlist_item(player->app, player->playlist_start, curr->currClipNum);
+        if(idx >= 0)
+        {
+            strcpy(tc_rem, "PLAYING->");
+            omnplay_playlist_draw_item_rem(player->app, idx, tc_rem);
+        }
+        if(curr->currClipNum != prev->currClipNum && 1 != prev->numClips)
+        {
+            tc_rem[0] = 0;
+            idx = find_index_of_playlist_item(player->app, player->playlist_start, prev->currClipNum);
+            if(idx >= 0)
+                omnplay_playlist_draw_item_rem(player->app, idx, tc_rem);
+        };
+    }
+    else
+    {
+        tc_rem[0] = 0;
+        idx = find_index_of_playlist_item(player->app, player->playlist_start, curr->currClipNum);
+        if(idx >= 0)
+            omnplay_playlist_draw_item_rem(player->app, idx, tc_rem);
+        idx = find_index_of_playlist_item(player->app, player->playlist_start, prev->currClipNum);
+        if(idx >= 0)
+            omnplay_playlist_draw_item_rem(player->app, idx, tc_rem);
+    };
+    pthread_mutex_unlock(&player->app->players.lock);
+    pthread_mutex_unlock(&player->app->playlist.lock);
+    gdk_flush();
+    gdk_threads_leave();
+
 
     memcpy(prev, curr, sizeof(OmPlrStatus));
 };
@@ -271,8 +325,8 @@ static void omnplay_ctl(omnplay_instance_t* app, control_buttons_t button)
         OmPlrStop((OmPlrHandle)player->handle);
 
         /* detach previous clips */
-        player->playlist_start = -1;
-        player->playlist_count = -1;
+//        player->playlist_start = -1;
+//        player->playlist_count = -1;
         OmPlrDetachAllClips((OmPlrHandle)player->handle);
     };
 
@@ -357,12 +411,11 @@ static void omnplay_ctl(omnplay_instance_t* app, control_buttons_t button)
             if(app->playlist.item[start].type & OMNPLAY_PLAYLIST_BLOCK_LOOP)
                 OmPlrLoop((OmPlrHandle)player->handle, hs.minPos, hs.maxPos);
 
+            player->playlist_start = start;
+
             /* Cue */
             OmPlrCuePlay((OmPlrHandle)player->handle, 0.0);
             OmPlrPlay((OmPlrHandle)player->handle, 0.0);
-
-            player->playlist_start = start;
-            player->playlist_count = stop - start + 1;
         };
     };
 
