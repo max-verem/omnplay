@@ -175,55 +175,102 @@ static void* omnplay_thread_proc(void* data)
     return NULL;
 };
 
-static void omnplay_cue(omnplay_instance_t* app)
+static int get_first_selected_item_playlist(omnplay_instance_t* app)
 {
-    int idx, start, stop;
+    int idx;
     GtkTreeIter iter;
     GtkTreeModel *model;
     GtkTreeSelection *selection;
-    omnplay_player_t *player;
-
-    pthread_mutex_lock(&app->playlist.lock);
 
     selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(app->playlist_grid));
     if(selection && gtk_tree_selection_get_selected(selection, &model, &iter))
     {
         gtk_tree_model_get(model, &iter, 7, &idx, -1);
-
-        fprintf(stderr, "cue: selected item is %d\n", idx);
-
-        for(start = idx; start >= 0; start--)
-            if(app->playlist.item[start].type & OMNPLAY_PLAYLIST_BLOCK_BEGIN)
-                break;
-
-        for(stop = idx; stop < app->playlist.count; stop++)
-            if(app->playlist.item[stop].type & OMNPLAY_PLAYLIST_BLOCK_END)
-                break;
-
-        /* check block range */
-        if(start >= 0 && stop < app->playlist.count)
-        {
-            fprintf(stderr, "cue: range %d -> %d\n", start, stop);
-
-            /* check player range */
-            if(app->playlist.item[start].player > -1 && app->playlist.item[start].player <  player->app->players.count)
-            {
-                player = &app->players.item[app->playlist.item[start].player];
-
-                /* 1. stop */
-                pthread_mutex_lock(&app->players.lock);
-                OmPlrStop((OmPlrHandle)player->handle);
-                pthread_mutex_unlock(&app->players.lock);
-
-                /* 2. detach previous clips */
-                pthread_mutex_lock(&app->players.lock);
-                OmPlrDetachAllClips((OmPlrHandle)player->handle);
-                pthread_mutex_unlock(&app->players.lock);
-
-                // http://research.m1stereo.tv/viewvc-int/viewvc.cgi/Ingest2Srv/trunk/SrvPlayCtl.cpp?view=markup
-            };
-        };
+        return idx;
     };
+    return -1;
+};
+
+static int get_playlist_block(omnplay_instance_t* app, int idx, int* start_ptr, int* stop_ptr)
+{
+    int start, stop;
+
+    for(start = idx; start >= 0; start--)
+        if(app->playlist.item[start].type & OMNPLAY_PLAYLIST_BLOCK_BEGIN)
+            break;
+
+    for(stop = idx; stop < app->playlist.count; stop++)
+        if(app->playlist.item[stop].type & OMNPLAY_PLAYLIST_BLOCK_END)
+            break;
+
+    fprintf(stderr, "get_playlist_block: range %d -> %d\n", start, stop);
+
+    /* check block range */
+    if(start >= 0 && stop < app->playlist.count)
+    {
+        *start_ptr = start;
+        *stop_ptr = stop;
+        return (stop - start + 1);
+    };
+
+    return -1;
+};
+
+static omnplay_player_t *get_player_at_pos(omnplay_instance_t* app, int pos)
+{
+    /* check player range */
+    if(app->playlist.item[pos].player > -1 && app->playlist.item[pos].player < app->players.count)
+        return &app->players.item[app->playlist.item[pos].player];
+
+    return NULL;
+};
+
+static void omnplay_cue(omnplay_instance_t* app)
+{
+    int idx, start, stop;
+    omnplay_player_t *player;
+
+    pthread_mutex_lock(&app->playlist.lock);
+
+    idx = get_first_selected_item_playlist(app);
+
+    if(idx < 0)
+    {
+        pthread_mutex_unlock(&app->playlist.lock);
+        return;
+    };
+
+    fprintf(stderr, "cue: selected item is %d\n", idx);
+
+    if(get_playlist_block(app, idx, &start, &stop) < 0)
+    {
+        pthread_mutex_unlock(&app->playlist.lock);
+        return;
+    };
+
+    fprintf(stderr, "cue: range %d -> %d\n", start, stop);
+
+    player = get_player_at_pos(app, start);
+
+    if(!player)
+    {
+        pthread_mutex_unlock(&app->playlist.lock);
+        return;
+    };
+
+    /* 1. stop */
+    pthread_mutex_lock(&app->players.lock);
+    OmPlrStop((OmPlrHandle)player->handle);
+    player->playlist_start = -1;
+    player->playlist_count = -1;
+    pthread_mutex_unlock(&app->players.lock);
+
+    /* 2. detach previous clips */
+    pthread_mutex_lock(&app->players.lock);
+    OmPlrDetachAllClips((OmPlrHandle)player->handle);
+    pthread_mutex_unlock(&app->players.lock);
+
+    // http://research.m1stereo.tv/viewvc-int/viewvc.cgi/Ingest2Srv/trunk/SrvPlayCtl.cpp?view=markup
 
     pthread_mutex_unlock(&app->playlist.lock);
 
