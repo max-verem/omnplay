@@ -267,9 +267,58 @@ static int* get_selected_items_playlist(omnplay_instance_t* app)
     return list;
 };
 
+static int idx_in_players_range(omnplay_instance_t* app, int idx)
+{
+    int i, r = 0;
+
+    for(i = 0; i < app->players.count && !r; i++)
+    {
+        int a, b;
+
+        a = app->players.item[i].playlist_start;
+        b = app->players.item[i].playlist_length;
+
+        if(b <= 0)
+            continue;
+
+        b = a + b - 1;
+
+        if(idx >= a && idx <= b) r = 1;
+    };
+
+    return r;
+};
+
+static int idxs_in_players_range(omnplay_instance_t* app, int start, int stop)
+{
+    int i, r = 0;
+
+    for(i = 0; i < app->players.count && !r; i++)
+    {
+        int a, b;
+
+        a = app->players.item[i].playlist_start;
+        b = app->players.item[i].playlist_length;
+
+        if(b <= 0)
+            continue;
+
+        b = a + b - 1;
+
+#define IN_RANGE(A,B,C) (A <= C && C <= B)
+        if( IN_RANGE(a,b,start) ||
+            IN_RANGE(a,b,stop) ||
+            IN_RANGE(start,stop,a) ||
+            IN_RANGE(start,stop,b))
+            r = 1;
+    };
+
+    return r;
+};
+
 static void omnplay_playlist_block(omnplay_instance_t* app, control_buttons_t button)
 {
-    int start, stop;
+    int start, stop, r, i;
     int* list = get_selected_items_playlist(app);
 
     if(!list)
@@ -281,8 +330,40 @@ static void omnplay_playlist_block(omnplay_instance_t* app, control_buttons_t bu
     start = list[1];
     stop = list[list[0]];
 
-    fprintf(stderr, "omnplay_playlist_block: [%d %d]\n",
-        start, stop);
+    if(!idxs_in_players_range(app, start, stop))
+    {
+        int loop = (button == BUTTON_PLAYLIST_BLOCK_LOOP)?OMNPLAY_PLAYLIST_BLOCK_LOOP:0;
+
+        /* update selected item */
+        for(i = start; i <= stop; i++)
+        {
+            int t = OMNPLAY_PLAYLIST_BLOCK_BODY | loop;
+
+            if(i == start)      t |= OMNPLAY_PLAYLIST_BLOCK_BEGIN;
+            if(i == stop)       t |= OMNPLAY_PLAYLIST_BLOCK_END;
+
+            app->playlist.item[i].type = (playlist_item_type_t)t;
+
+            omnplay_playlist_draw_item(app, i);
+        };
+
+        /* update border items */
+        if(!start && !(app->playlist.item[start - 1].type & OMNPLAY_PLAYLIST_BLOCK_END))
+        {
+            app->playlist.item[start - 1].type = (playlist_item_type_t)(OMNPLAY_PLAYLIST_BLOCK_END
+                | app->playlist.item[start - 1].type);
+            omnplay_playlist_draw_item(app, start - 1);
+        };
+        if((stop + 1) < app->playlist.count && !(app->playlist.item[stop + 1].type & OMNPLAY_PLAYLIST_BLOCK_BEGIN))
+        {
+            app->playlist.item[stop + 1].type = (playlist_item_type_t)(OMNPLAY_PLAYLIST_BLOCK_BEGIN
+                | app->playlist.item[stop + 1].type);
+            omnplay_playlist_draw_item(app, stop + 1);
+        };
+    }
+    else
+        fprintf(stderr, "omnplay_playlist_block: range [%d %d] do OVERLAP player\n",
+            start, stop);
 
     pthread_mutex_unlock(&app->players.lock);
     pthread_mutex_unlock(&app->playlist.lock);
