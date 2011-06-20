@@ -222,3 +222,7 @@ void omnplay_playlist_draw(omnplay_instance_t* app)
 
     pthread_mutex_unlock(&app->playlist.lock);
 };
+
+void omnplay_playlist_draw_item(omnplay_instance_t* app, int idx)
+{
+};

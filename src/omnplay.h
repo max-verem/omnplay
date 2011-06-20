@@ -148,6 +148,7 @@ void omnplay_destroy(omnplay_instance_t* app);
 void omnplay_playlist_load(omnplay_instance_t* app);
 void omnplay_playlist_save(omnplay_instance_t* app);
 void omnplay_playlist_draw(omnplay_instance_t* app);
+void omnplay_playlist_draw_item(omnplay_instance_t* app, int idx);
 
 #ifdef __cplusplus
 };

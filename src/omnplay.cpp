@@ -279,13 +279,36 @@ static void omnplay_ctl(omnplay_instance_t* app, control_buttons_t button)
         /* Attach clips to timeline */
         for(i = start, c = 0, o = 0; i <= stop; i++)
         {
-            unsigned int l;
+            OmPlrClipInfo clip;
 
-            r = OmPlrAttach((OmPlrHandle)player->handle,
-                app->playlist.item[i].id,
-                app->playlist.item[i].in,
-                app->playlist.item[i].in + app->playlist.item[i].dur,
-                0, omPlrShiftModeAfter, &l);
+            /* get clip info */
+            clip.maxMsTracks = 0; 
+            clip.size = sizeof(clip);
+            r = OmPlrClipGetInfo((OmPlrHandle)player->handle, app->playlist.item[i].id, &clip);
+
+            if(!r)
+            {
+                unsigned int l;
+
+                fprintf(stderr, "OmPlrClipGetInfo(%s): firstFrame=%d, lastFrame=%d\n",
+                    app->playlist.item[i].id, clip.firstFrame, clip.lastFrame);
+
+                /* should we fix playlist clip timings */
+                if((!
+                    app->playlist.item[i].in >= clip.firstFrame &&
+                    app->playlist.item[i].in + app->playlist.item[i].dur <= clip.lastFrame))
+                {
+                    app->playlist.item[i].in = clip.firstFrame;
+                    app->playlist.item[i].dur = clip.lastFrame - clip.firstFrame;
+                    omnplay_playlist_draw_item(app, i);
+                };
+
+                r = OmPlrAttach((OmPlrHandle)player->handle,
+                    app->playlist.item[i].id,
+                    app->playlist.item[i].in,
+                    app->playlist.item[i].in + app->playlist.item[i].dur,
+                    0, omPlrShiftModeAfter, &l);
+            };
 
             if(r)
             {
