@@ -353,6 +353,10 @@ static void omnplay_ctl(omnplay_instance_t* app, control_buttons_t button)
             OmPlrGetPlayerStatus((OmPlrHandle)player->handle, &hs);
             OmPlrSetPos((OmPlrHandle)player->handle, hs.minPos + p);
 
+            /* setup loop */
+            if(app->playlist.item[start].type & OMNPLAY_PLAYLIST_BLOCK_LOOP)
+                OmPlrLoop((OmPlrHandle)player->handle, hs.minPos, hs.maxPos);
+
             /* Cue */
             OmPlrCuePlay((OmPlrHandle)player->handle, 0.0);
             OmPlrPlay((OmPlrHandle)player->handle, 0.0);
