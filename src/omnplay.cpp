@@ -267,6 +267,29 @@ static int* get_selected_items_playlist(omnplay_instance_t* app)
     return list;
 };
 
+static void omnplay_playlist_block(omnplay_instance_t* app, control_buttons_t button)
+{
+    int start, stop;
+    int* list = get_selected_items_playlist(app);
+
+    if(!list)
+        return;
+
+    pthread_mutex_lock(&app->playlist.lock);
+    pthread_mutex_lock(&app->players.lock);
+
+    start = list[1];
+    stop = list[list[0]];
+
+    fprintf(stderr, "omnplay_playlist_block: [%d %d]\n",
+        start, stop);
+
+    pthread_mutex_unlock(&app->players.lock);
+    pthread_mutex_unlock(&app->playlist.lock);
+
+    free(list);
+};
+
 static int get_first_selected_item_playlist(omnplay_instance_t* app)
 {
     int idx;
@@ -353,8 +376,7 @@ static void omnplay_ctl(omnplay_instance_t* app, control_buttons_t button)
         OmPlrStop((OmPlrHandle)player->handle);
 
         /* detach previous clips */
-//        player->playlist_start = -1;
-//        player->playlist_count = -1;
+        player->playlist_length = -1;
         OmPlrDetachAllClips((OmPlrHandle)player->handle);
     };
 
@@ -440,10 +462,10 @@ static void omnplay_ctl(omnplay_instance_t* app, control_buttons_t button)
                 OmPlrLoop((OmPlrHandle)player->handle, hs.minPos, hs.maxPos);
 
             player->playlist_start = start;
+            player->playlist_length = stop - start + 1;
 
             /* Cue */
             OmPlrCuePlay((OmPlrHandle)player->handle, 0.0);
-            OmPlrPlay((OmPlrHandle)player->handle, 0.0);
         };
     };
 
@@ -478,6 +500,7 @@ static gboolean omnplay_button_click(omnplay_instance_t* app, control_buttons_t 
             break;
         case BUTTON_PLAYLIST_BLOCK_SINGLE:
         case BUTTON_PLAYLIST_BLOCK_LOOP:
+            omnplay_playlist_block(app, button);
             break;
         case BUTTON_PLAYLIST_ITEM_UP:
         case BUTTON_PLAYLIST_ITEM_DOWN:
