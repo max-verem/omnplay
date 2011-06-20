@@ -134,7 +134,7 @@ static void omnplay_update_status(omnplay_player_t* player, OmPlrStatus *prev , 
         idx = find_index_of_playlist_item(player->app, player->playlist_start, curr->currClipNum);
         if(idx >= 0)
         {
-            strcpy(tc_rem, "PLAYING->");
+            frames2tc(curr->currClipStartPos + curr->currClipLen - curr->pos, 25.0, tc_rem);
             omnplay_playlist_draw_item_rem(player->app, idx, tc_rem);
         }
         if(curr->currClipNum != prev->currClipNum && 1 != prev->numClips)
