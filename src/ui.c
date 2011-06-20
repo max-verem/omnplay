@@ -121,6 +121,7 @@ static GtkWidget* create_treeview(GtkWidget* top, char* name, const column_desc_
     int i, count;
 
     GtkWidget *treeview;
+    GtkTreeSelection  *selection;
     GtkCellRenderer *renderer;
     GtkTreeViewColumn *column;
     GtkListStore *list_store;
@@ -128,6 +129,9 @@ static GtkWidget* create_treeview(GtkWidget* top, char* name, const column_desc_
 
     treeview = gtk_tree_view_new ();
     gtk_widget_show (treeview);
+
+    selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(treeview));
+    gtk_tree_selection_set_mode(selection, GTK_SELECTION_MULTIPLE);
 
     for(i = 0, count = 0; columns[i].title; i++, count++)
         list_store_types[i] = (columns[i].type == G_TYPE_OBJECT)?GDK_TYPE_PIXBUF:columns[i].type;
