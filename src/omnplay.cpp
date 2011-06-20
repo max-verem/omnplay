@@ -133,7 +133,7 @@ static void* omnplay_thread_proc(void* data)
     if(player->app->players.path[0])
     {
         pthread_mutex_lock(&player->app->players.lock);
-//        r = OmPlrClipSetDirectory((OmPlrHandle)player->handle, player->app->players.path);
+        r = OmPlrClipSetDirectory((OmPlrHandle)player->handle, player->app->players.path);
         pthread_mutex_unlock(&player->app->players.lock);
 
         if(r)
@@ -225,8 +225,9 @@ static omnplay_player_t *get_player_at_pos(omnplay_instance_t* app, int pos)
     return NULL;
 };
 
-static void omnplay_cue(omnplay_instance_t* app)
+static void omnplay_ctl(omnplay_instance_t* app, control_buttons_t button)
 {
+    int i, r;
     int idx, start, stop;
     omnplay_player_t *player;
 
@@ -258,22 +259,89 @@ static void omnplay_cue(omnplay_instance_t* app)
         return;
     };
 
-    /* 1. stop */
     pthread_mutex_lock(&app->players.lock);
-    OmPlrStop((OmPlrHandle)player->handle);
-    player->playlist_start = -1;
-    player->playlist_count = -1;
-    pthread_mutex_unlock(&app->players.lock);
 
-    /* 2. detach previous clips */
-    pthread_mutex_lock(&app->players.lock);
-    OmPlrDetachAllClips((OmPlrHandle)player->handle);
-    pthread_mutex_unlock(&app->players.lock);
+    if(BUTTON_PLAYER_STOP == button || BUTTON_PLAYER_CUE == button)
+    {
+        /* stop */
+        OmPlrStop((OmPlrHandle)player->handle);
 
-    // http://research.m1stereo.tv/viewvc-int/viewvc.cgi/Ingest2Srv/trunk/SrvPlayCtl.cpp?view=markup
+        /* detach previous clips */
+        player->playlist_start = -1;
+        player->playlist_count = -1;
+        OmPlrDetachAllClips((OmPlrHandle)player->handle);
+    };
+
+    if(BUTTON_PLAYER_CUE == button)
+    {
+        int o, c, p = 0;
+
+        /* Attach clips to timeline */
+        for(i = start, c = 0, o = 0; i <= stop; i++)
+        {
+            unsigned int l;
+
+            r = OmPlrAttach((OmPlrHandle)player->handle,
+                app->playlist.item[i].id,
+                app->playlist.item[i].in,
+                app->playlist.item[i].in + app->playlist.item[i].dur,
+                0, omPlrShiftModeAfter, &l);
+
+            if(r)
+            {
+                fprintf(stderr, "cue: failed with %d, %s\n", r, OmPlrGetErrorString((OmPlrError)r));
+                app->playlist.item[i].omn_idx = -1;
+                app->playlist.item[i].omn_offset = -1;
+            }
+            else
+            {
+                app->playlist.item[i].omn_idx = c;
+                app->playlist.item[i].omn_offset = o;
+
+                /* save selected item offset */
+                if(i == idx) p = o;
+
+                c++;
+                o += app->playlist.item[i].dur;
+            };
+        };
+
+        if(c)
+        {
+            OmPlrStatus hs;
+
+            /* Set timeline min/max */
+            OmPlrSetMinPosMin((OmPlrHandle)player->handle);
+            OmPlrSetMaxPosMax((OmPlrHandle)player->handle);
+
+            /* Set timeline position */
+            hs.minPos = 0;
+            hs.size = sizeof(OmPlrStatus);
+            OmPlrGetPlayerStatus((OmPlrHandle)player->handle, &hs);
+            OmPlrSetPos((OmPlrHandle)player->handle, hs.minPos + p);
+
+            /* Cue */
+            OmPlrCuePlay((OmPlrHandle)player->handle, 0.0);
+            OmPlrPlay((OmPlrHandle)player->handle, 0.0);
+
+            player->playlist_start = start;
+            player->playlist_count = stop - start + 1;
+        };
+    };
+
+    if(BUTTON_PLAYER_PLAY == button)
+    {
+        /* play */
+        OmPlrPlay((OmPlrHandle)player->handle, 1.0);
+    };
+
+    if(BUTTON_PLAYER_PAUSE == button)
+        /* pause */
+        OmPlrPlay((OmPlrHandle)player->handle, 0.0);
+
+    pthread_mutex_unlock(&app->players.lock);
 
     pthread_mutex_unlock(&app->playlist.lock);
-
 };
 
 static gboolean omnplay_button_click(omnplay_instance_t* app, control_buttons_t button)
@@ -283,6 +351,7 @@ static gboolean omnplay_button_click(omnplay_instance_t* app, control_buttons_t 
         case BUTTON_PLAYLIST_ITEM_ADD:
         case BUTTON_PLAYLIST_ITEM_DEL:
         case BUTTON_PLAYLIST_ITEM_EDIT:
+            break;
         case BUTTON_PLAYLIST_LOAD:
             omnplay_playlist_load(app);
             break;
@@ -291,13 +360,16 @@ static gboolean omnplay_button_click(omnplay_instance_t* app, control_buttons_t 
             break;
         case BUTTON_PLAYLIST_BLOCK_SINGLE:
         case BUTTON_PLAYLIST_BLOCK_LOOP:
+            break;
         case BUTTON_PLAYLIST_ITEM_UP:
         case BUTTON_PLAYLIST_ITEM_DOWN:
+            break;
         case BUTTON_PLAYER_CUE:
-            omnplay_cue(app);
         case BUTTON_PLAYER_PLAY:
         case BUTTON_PLAYER_PAUSE:
         case BUTTON_PLAYER_STOP:
+            omnplay_ctl(app, button);
+            break;
         case BUTTON_LIBRARY_ADD:
         case BUTTON_LIBRARY_REFRESH:
             break;
