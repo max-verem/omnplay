@@ -17,6 +17,10 @@
  * Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
+
 #ifdef HAVE_CONFIG_H
 #  include <config.h>
 #endif
@@ -294,10 +298,16 @@ static void omnplay_ctl(omnplay_instance_t* app, control_buttons_t button)
                     app->playlist.item[i].id, clip.firstFrame, clip.lastFrame);
 
                 /* should we fix playlist clip timings */
-                if((!
+                if(!(
                     app->playlist.item[i].in >= clip.firstFrame &&
-                    app->playlist.item[i].in + app->playlist.item[i].dur <= clip.lastFrame))
+                    app->playlist.item[i].in + app->playlist.item[i].dur <= clip.lastFrame) ||
+                    !app->playlist.item[i].dur)
                 {
+                    fprintf(stderr, "cue: item [%s] will be updated [%d;%d]->[%d;%d]\n",
+                        app->playlist.item[i].id,
+                        app->playlist.item[i].in, app->playlist.item[i].dur,
+                        clip.firstFrame, clip.lastFrame - clip.firstFrame);
+
                     app->playlist.item[i].in = clip.firstFrame;
                     app->playlist.item[i].dur = clip.lastFrame - clip.firstFrame;
                     omnplay_playlist_draw_item(app, i);
@@ -416,12 +426,15 @@ static gboolean on_button_click(GtkWidget *button, gpointer user_data)
 void omnplay_init(omnplay_instance_t* app)
 {
     int i;
+    pthread_mutexattr_t attr;
+
+    pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
 
     gtk_signal_connect( GTK_OBJECT( app->window ), "destroy",
         GTK_SIGNAL_FUNC(on_main_window_delete_event), app);
 
     /* create lock */
-    pthread_mutex_init(&app->players.lock, NULL);
+    pthread_mutex_init(&app->players.lock, &attr);
 
     /* create a omneon status thread */
     for(i = 0; i < app->players.count; i++)
@@ -429,7 +442,7 @@ void omnplay_init(omnplay_instance_t* app)
             omnplay_thread_proc, &app->players.item[i]);
 
     /* create lock */
-    pthread_mutex_init(&app->playlist.lock, NULL);
+    pthread_mutex_init(&app->playlist.lock, &attr);
 
     /* attach buttons click */
     for(i = 1; i < BUTTON_LAST; i++)
