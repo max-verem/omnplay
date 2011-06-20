@@ -272,3 +272,36 @@ void omnplay_playlist_draw_item(omnplay_instance_t* app, int idx)
 
     pthread_mutex_unlock(&app->playlist.lock);
 };
+
+static gboolean omnplay_playlist_draw_item_rem_proc(
+    GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter, gpointer user_data)
+{
+    int i;
+    void** args                 = (void**)user_data;
+    GtkListStore *list_store    = (GtkListStore *)args[1];
+    int idx                     = (int)args[2];
+    char* rem                   = (char*)args[3];
+
+    gtk_tree_model_get(model, iter, 7, &i, -1);
+
+    if(i != idx) return FALSE;
+
+    gtk_list_store_set(list_store, iter, 0, rem, -1);
+
+    return TRUE;
+};
+
+void omnplay_playlist_draw_item_rem(omnplay_instance_t* app, int idx, char* rem)
+{
+    void* item[4];
+    GtkListStore *list_store;
+
+    list_store = GTK_LIST_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(app->playlist_grid)));
+
+    item[0] = (void*)app;
+    item[1] = (void*)list_store;
+    item[2] = (void*)idx;
+    item[3] = (void*)rem;
+
+    gtk_tree_model_foreach(GTK_TREE_MODEL(list_store), omnplay_playlist_draw_item_rem_proc, item);
+};
