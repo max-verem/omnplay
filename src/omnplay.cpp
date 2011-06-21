@@ -415,6 +415,107 @@ static omnplay_player_t *get_player_at_pos(omnplay_instance_t* app, int pos)
     return NULL;
 };
 
+static void omnplay_playlist_item_del(omnplay_instance_t* app)
+{
+
+};
+
+static int omnplay_playlist_insert_check(omnplay_instance_t* app, int idx, playlist_item_type_t* t)
+{
+    *t = OMNPLAY_PLAYLIST_ITEM_BLOCK_SINGLE;
+
+    /* before or after playlist */
+    if(!idx || idx == app->playlist.count)
+        return 1;
+
+    /* check for block borders */
+    if( app->playlist.item[idx - 1].type & OMNPLAY_PLAYLIST_BLOCK_END &&
+        app->playlist.item[idx + 0].type & OMNPLAY_PLAYLIST_BLOCK_BEGIN)
+        return 1;
+
+    /* check for playing block */
+    if(idx_in_players_range(app, idx))
+        return 0;
+
+    if(app->playlist.item[idx].type & OMNPLAY_PLAYLIST_BLOCK_LOOP)
+        *t = OMNPLAY_PLAYLIST_ITEM_LOOP_BODY;
+    else
+        *t = OMNPLAY_PLAYLIST_ITEM_BLOCK_BODY;
+
+    return 1;
+};
+
+static void omnplay_playlist_insert_items(omnplay_instance_t* app, int idx,
+    playlist_item_t* items, int count)
+{
+    int i;
+
+    pthread_mutex_lock(&app->playlist.lock);
+    pthread_mutex_lock(&app->players.lock);
+
+    /* shift playlist items */
+    memmove
+    (
+        &app->playlist.item[idx + count],
+        &app->playlist.item[idx],
+        (app->playlist.count - idx) * sizeof(playlist_item_t)
+    );
+
+    /* copy new items */
+    memcpy
+    (
+        &app->playlist.item[idx],
+        items,
+        count * sizeof(playlist_item_t)
+    );
+
+    /* increment servers indexes */
+    for(i = 0; i < app->players.count; i++)
+        if(app->players.item[i].playlist_start >= idx)
+            app->players.item[i].playlist_start += idx;
+
+    /* increment items count */
+    app->playlist.count += count;
+
+    /* redraw playlist */
+    omnplay_playlist_draw(app);
+
+    pthread_mutex_unlock(&app->players.lock);
+    pthread_mutex_unlock(&app->playlist.lock);
+};
+
+static void omnplay_playlist_item_add(omnplay_instance_t* app, int after)
+{
+    int idx;
+    playlist_item_t item;
+    playlist_item_type_t t;
+
+    /* find insert position */
+    idx = get_first_selected_item_playlist(app);
+    if(idx < 0)
+        idx = 0;
+    else
+        idx += (after)?1:0;
+
+    if(!omnplay_playlist_insert_check(app, idx, &t))
+        return;
+
+    fprintf(stderr, "allowed insert into idx=%d\n", idx);
+
+    /* clear item */
+    memset(&item, 0, sizeof(playlist_item_t));
+    if(ui_playlist_item_dialog(app, &item))
+    {
+        item.type = t;
+        omnplay_playlist_insert_items(app, idx, &item, 1);
+    };
+};
+
+static void omnplay_playlist_item_edit(omnplay_instance_t* app)
+{
+
+};
+
 static void omnplay_ctl(omnplay_instance_t* app, control_buttons_t button)
 {
     int i, r;
@@ -541,6 +642,8 @@ static void omnplay_ctl(omnplay_instance_t* app, control_buttons_t button)
             /* setup loop */
             if(app->playlist.item[start].type & OMNPLAY_PLAYLIST_BLOCK_LOOP)
                 OmPlrLoop((OmPlrHandle)player->handle, hs.minPos, hs.maxPos);
+            else
+                OmPlrLoop((OmPlrHandle)player->handle, hs.minPos, hs.minPos);
 
             player->playlist_start = start;
             player->playlist_length = stop - start + 1;
@@ -570,8 +673,13 @@ static gboolean omnplay_button_click(omnplay_instance_t* app, control_buttons_t 
     switch(button)
     {
         case BUTTON_PLAYLIST_ITEM_ADD:
+            omnplay_playlist_item_add(app, 0);
+            break;
         case BUTTON_PLAYLIST_ITEM_DEL:
+            omnplay_playlist_item_del(app);
+            break;
         case BUTTON_PLAYLIST_ITEM_EDIT:
+            omnplay_playlist_item_edit(app);
             break;
         case BUTTON_PLAYLIST_LOAD:
             omnplay_playlist_load(app);
