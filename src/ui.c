@@ -34,6 +34,7 @@
 #include "ui_utils.h"
 #include "ui_buttons.h"
 #include "support.h"
+#include "timecode.h"
 
 typedef struct column_desc
 {
@@ -105,7 +106,8 @@ static GtkWidget* create_label(GtkWidget* top, char* text, char* reg, GtkJustifi
     label = gtk_label_new ("");
     gtk_widget_show (label);
 
-    gtk_label_set_justify (GTK_LABEL (label), jtype);
+    if(jtype)
+        gtk_label_set_justify (GTK_LABEL (label), jtype);
 
     if(reg)
         GLADE_HOOKUP_OBJECT (top, label, reg);
@@ -540,3 +542,124 @@ GtkWidget* ui_omnplay (omnplay_instance_t* app)
 
     return wnd;
 }
+
+int ui_playlist_item_dialog(omnplay_instance_t* app, playlist_item_t* item)
+{
+    int r, c;
+    char tc[32];
+    GtkWidget *dlg;
+    gint response;
+    GtkWidget *box, *table;
+    GtkWidget *entry[4], *combo;
+
+    dlg = gtk_dialog_new_with_buttons(
+        "Playlist item",
+        GTK_WINDOW(app->window),
+        GTK_DIALOG_MODAL,
+        GTK_STOCK_OK, GTK_RESPONSE_ACCEPT,
+        GTK_STOCK_CANCEL, GTK_RESPONSE_REJECT,
+        NULL);
+
+    box = gtk_dialog_get_content_area(GTK_DIALOG(dlg));
+
+    table = gtk_table_new(5, 2, TRUE);
+    gtk_widget_show(table);
+    gtk_box_pack_start(GTK_BOX(box), table, TRUE, TRUE, 0);
+
+    gtk_table_attach(GTK_TABLE(table),
+        create_label(NULL, "ID:", NULL, 0),
+        0, 1, 0, 1,
+        GTK_FILL/* | GTK_SHRINK */, GTK_FILL | GTK_SHRINK, 5, 5);
+
+    gtk_table_attach(GTK_TABLE(table),
+        create_label(NULL, "IN:", NULL, GTK_JUSTIFY_RIGHT),
+        0, 1, 1, 2,
+        GTK_FILL/* | GTK_SHRINK */, GTK_FILL | GTK_SHRINK, 5, 5);
+
+    gtk_table_attach(GTK_TABLE(table),
+        create_label(NULL, "DUR:", NULL, GTK_JUSTIFY_RIGHT),
+        0, 1, 2, 3,
+        GTK_FILL/* | GTK_SHRINK */, GTK_FILL | GTK_SHRINK, 5, 5);
+
+    gtk_table_attach(GTK_TABLE(table),
+        create_label(NULL, "TITLE:", NULL, GTK_JUSTIFY_RIGHT),
+        0, 1, 3, 4,
+        GTK_FILL/* | GTK_SHRINK */, GTK_FILL | GTK_SHRINK, 5, 5);
+
+    gtk_table_attach(GTK_TABLE(table),
+        create_label(NULL, "CHANNEL:", NULL, GTK_JUSTIFY_RIGHT),
+        0, 1, 4, 5,
+        GTK_FILL/* | GTK_SHRINK */, GTK_FILL | GTK_SHRINK, 5, 5);
+
+
+    gtk_table_attach(GTK_TABLE(table),
+        entry[0] = gtk_entry_new_with_max_length(32),
+        1, 2, 0, 1,
+        GTK_FILL/* | GTK_SHRINK */, GTK_FILL | GTK_SHRINK, 5, 5);
+
+    gtk_table_attach(GTK_TABLE(table),
+        entry[1] = gtk_entry_new_with_max_length(12),
+        1, 2, 1, 2,
+        GTK_FILL/* | GTK_SHRINK */, GTK_FILL | GTK_SHRINK, 5, 5);
+
+    gtk_table_attach(GTK_TABLE(table),
+        entry[2] = gtk_entry_new_with_max_length(12),
+        1, 2, 2, 3,
+        GTK_FILL/* | GTK_SHRINK */, GTK_FILL | GTK_SHRINK, 5, 5);
+
+    gtk_table_attach(GTK_TABLE(table),
+        entry[3] = gtk_entry_new_with_max_length(128),
+        1, 2, 3, 4,
+        GTK_FILL/* | GTK_SHRINK */, GTK_FILL | GTK_SHRINK, 5, 5);
+
+    gtk_table_attach(GTK_TABLE(table),
+        combo = gtk_combo_box_new_text(),
+        1, 2, 4, 5,
+        GTK_FILL/* | GTK_SHRINK */, GTK_FILL | GTK_SHRINK, 5, 5);
+
+
+    /* setup data */
+    gtk_entry_set_text(GTK_ENTRY(entry[0]), item->id);
+    gtk_entry_set_text(GTK_ENTRY(entry[1]), frames2tc(item->in, 25.0, tc));
+    gtk_entry_set_text(GTK_ENTRY(entry[2]), frames2tc(item->dur, 25.0, tc));
+    gtk_entry_set_text(GTK_ENTRY(entry[3]), item->title);
+    gtk_combo_box_append_text(GTK_COMBO_BOX(combo), "A");
+    gtk_combo_box_append_text(GTK_COMBO_BOX(combo), "B");
+    gtk_combo_box_append_text(GTK_COMBO_BOX(combo), "C");
+    gtk_combo_box_append_text(GTK_COMBO_BOX(combo), "D");
+    gtk_combo_box_set_active(GTK_COMBO_BOX(combo), item->player);
+
+    gtk_widget_show_all(dlg);
+
+    /* Run dialog */
+    for(c = 1; c;)
+    {
+        response = gtk_dialog_run(GTK_DIALOG(dlg));
+
+        if(GTK_RESPONSE_REJECT == response)
+        {
+            r = 0;
+            c = 0;
+        }
+        else
+        {
+            r = 1;
+
+            /* get item data back */
+            strncpy(item->id, gtk_entry_get_text(GTK_ENTRY(entry[0])), PATH_MAX);
+            tc2frames((char*)gtk_entry_get_text(GTK_ENTRY(entry[1])), 25.0, &item->in);
+            tc2frames((char*)gtk_entry_get_text(GTK_ENTRY(entry[2])), 25.0, &item->dur);
+            strncpy(item->title, gtk_entry_get_text(GTK_ENTRY(entry[3])), PATH_MAX);
+            item->player = gtk_combo_box_get_active(GTK_COMBO_BOX(combo));
+
+            /* check if all data entered correctly */
+            if(item->dur && item->id[0])
+                c = 0;
+        };
+    };
+
+    gtk_widget_hide(dlg);
+    gtk_widget_destroy(dlg);
+
+    return r;
+};
