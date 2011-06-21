@@ -892,6 +892,56 @@ static gboolean on_button_click(GtkWidget *button, gpointer user_data)
     return FALSE;
 };
 
+static gboolean on_playlist_grid_key(GtkWidget *widget, GdkEventKey *event, gpointer data)
+{
+    omnplay_instance_t* app = (omnplay_instance_t*)data;
+
+    switch(event->keyval)
+    {
+        case GDK_C:
+        case GDK_c:
+            if(event->state & GDK_CONTROL_MASK)
+            {
+                fprintf(stderr, "CTRL+c\n");
+                return TRUE;
+            };
+            break;
+        case GDK_V:
+        case GDK_v:
+            if(event->state & GDK_CONTROL_MASK)
+            {
+                fprintf(stderr, "CTRL+v\n");
+                return TRUE;
+            };
+            break;
+        case GDK_X:
+        case GDK_x:
+            if(event->state & GDK_CONTROL_MASK)
+            {
+                fprintf(stderr, "CTRL+x\n");
+                return TRUE;
+            };
+            break;
+        case GDK_KEY_space:
+            omnplay_ctl(app, BUTTON_PLAYER_PLAY);
+            return TRUE;
+        case GDK_KEY_Return:
+            omnplay_ctl(app, BUTTON_PLAYER_CUE);
+            return TRUE;
+        case GDK_KEY_Insert:
+            omnplay_playlist_item_add(app, 0);
+            return TRUE;
+        case GDK_KEY_Delete:
+            omnplay_playlist_item_del(app);
+            return TRUE;
+        case GDK_KEY_BackSpace:
+            omnplay_playlist_item_edit(app);
+            return TRUE;
+    };
+
+    return FALSE;
+};
+
 void omnplay_init(omnplay_instance_t* app)
 {
     int i;
@@ -901,6 +951,10 @@ void omnplay_init(omnplay_instance_t* app)
 
     gtk_signal_connect( GTK_OBJECT( app->window ), "destroy",
         GTK_SIGNAL_FUNC(on_main_window_delete_event), app);
+
+    gtk_widget_add_events(app->playlist_grid, GDK_BUTTON_PRESS_MASK);
+    gtk_signal_connect(GTK_OBJECT(app->playlist_grid), "key-press-event",
+        GTK_SIGNAL_FUNC(on_playlist_grid_key), app);
 
     /* create lock */
     pthread_mutex_init(&app->players.lock, &attr);
