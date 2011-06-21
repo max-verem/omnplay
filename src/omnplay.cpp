@@ -449,6 +449,7 @@ static void omnplay_playlist_insert_items(omnplay_instance_t* app, int idx,
     playlist_item_t* items, int count)
 {
     int i;
+    GtkTreePath* path;
 
     pthread_mutex_lock(&app->playlist.lock);
     pthread_mutex_lock(&app->players.lock);
@@ -479,6 +480,12 @@ static void omnplay_playlist_insert_items(omnplay_instance_t* app, int idx,
 
     /* redraw playlist */
     omnplay_playlist_draw(app);
+
+    /* select */
+    path = gtk_tree_path_new_from_indices(idx + count, -1);
+    gtk_tree_selection_select_path(gtk_tree_view_get_selection(GTK_TREE_VIEW(app->playlist_grid)), path);
+    gtk_tree_view_set_cursor(GTK_TREE_VIEW(app->playlist_grid), path, NULL, FALSE);
+    gtk_tree_path_free(path);
 
     pthread_mutex_unlock(&app->players.lock);
     pthread_mutex_unlock(&app->playlist.lock);
