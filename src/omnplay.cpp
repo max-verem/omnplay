@@ -520,7 +520,26 @@ static void omnplay_playlist_item_add(omnplay_instance_t* app, int after)
 
 static void omnplay_playlist_item_edit(omnplay_instance_t* app)
 {
+    int idx;
+    playlist_item_t item;
 
+    /* find insert position */
+    idx = get_first_selected_item_playlist(app);
+
+    if(idx < 0)
+        return;
+
+    /* check for playing block */
+    if(idx_in_players_range(app, idx))
+        return;
+
+    item = app->playlist.item[idx];
+
+    if(ui_playlist_item_dialog(app, &item))
+    {
+        app->playlist.item[idx] = item;
+        omnplay_playlist_draw_item(app, idx);
+    };
 };
 
 static void omnplay_ctl(omnplay_instance_t* app, control_buttons_t button)
