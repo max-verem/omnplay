@@ -769,6 +769,74 @@ static void omnplay_ctl(omnplay_instance_t* app, control_buttons_t button)
     pthread_mutex_unlock(&app->playlist.lock);
 };
 
+static void omnplay_playlist_item_swap(omnplay_instance_t* app, int dir)
+{
+    int sel, a, b;
+    GtkTreePath* path;
+    playlist_item_t item;
+
+    /* find insert position */
+    sel = get_first_selected_item_playlist(app);
+    if(sel < 0)
+        return;
+
+    if(dir < 0)
+    {
+        a = sel - 1;
+        b = sel;
+        sel = a;
+    }
+    else
+    {
+        a = sel;
+        b = sel + 1;
+        sel = b;
+    };
+
+    /* check for playing block */
+    if(idx_in_players_range(app, a) || idx_in_players_range(app, b))
+        return;
+
+    pthread_mutex_lock(&app->playlist.lock);
+    pthread_mutex_lock(&app->players.lock);
+
+    /* swap */
+    item = app->playlist.item[a];
+    app->playlist.item[a] = app->playlist.item[b];
+    app->playlist.item[b] = item;
+
+    /* rewite type */
+    app->playlist.item[a].type = OMNPLAY_PLAYLIST_ITEM_BLOCK_SINGLE;
+    app->playlist.item[b].type = OMNPLAY_PLAYLIST_ITEM_BLOCK_SINGLE;
+
+    /* redraw main items */
+    omnplay_playlist_draw_item(app, a);
+    omnplay_playlist_draw_item(app, b);
+
+    /* fix block types */
+    if(!a)
+    {
+        app->playlist.item[a - 1].type = (playlist_item_type_t)(app->playlist.item[a - 1].type |
+            OMNPLAY_PLAYLIST_BLOCK_END);
+        omnplay_playlist_draw_item(app, a - 1);
+    };
+    if(b + 1 < app->playlist.count)
+    {
+        app->playlist.item[b + 1].type = (playlist_item_type_t)(app->playlist.item[b + 1].type |
+            OMNPLAY_PLAYLIST_BLOCK_BEGIN);
+        omnplay_playlist_draw_item(app, b + 1);
+    };
+
+    /* select */
+    path = gtk_tree_path_new_from_indices(sel, -1);
+    gtk_tree_selection_select_path(gtk_tree_view_get_selection(GTK_TREE_VIEW(app->playlist_grid)), path);
+    gtk_tree_view_set_cursor(GTK_TREE_VIEW(app->playlist_grid), path, NULL, FALSE);
+    gtk_tree_path_free(path);
+
+    pthread_mutex_unlock(&app->players.lock);
+    pthread_mutex_unlock(&app->playlist.lock);
+};
+
 static gboolean omnplay_button_click(omnplay_instance_t* app, control_buttons_t button)
 {
     switch(button)
@@ -793,7 +861,10 @@ static gboolean omnplay_button_click(omnplay_instance_t* app, control_buttons_t 
             omnplay_playlist_block(app, button);
             break;
         case BUTTON_PLAYLIST_ITEM_UP:
+            omnplay_playlist_item_swap(app, -1);
+            break;
         case BUTTON_PLAYLIST_ITEM_DOWN:
+            omnplay_playlist_item_swap(app, +1);
             break;
         case BUTTON_PLAYER_CUE:
         case BUTTON_PLAYER_PLAY:
