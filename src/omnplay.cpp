@@ -415,9 +415,84 @@ static omnplay_player_t *get_player_at_pos(omnplay_instance_t* app, int pos)
     return NULL;
 };
 
+static void omnplay_playlist_delete_items(omnplay_instance_t* app, int* idxs, int count)
+{
+    int i, j, idx;
+    GtkTreePath* path;
+
+    pthread_mutex_lock(&app->playlist.lock);
+    pthread_mutex_lock(&app->players.lock);
+
+    for(j = 0; j < count; j++)
+    {
+        idx = idxs[j] - j;
+
+        /* fix block types */
+        if(!idx)
+            app->playlist.item[idx - 1].type = (playlist_item_type_t)(app->playlist.item[idx - 1].type |
+                OMNPLAY_PLAYLIST_BLOCK_END);
+        if(idx + 1 < app->playlist.count)
+            app->playlist.item[idx + 1].type = (playlist_item_type_t)(app->playlist.item[idx + 1].type |
+                OMNPLAY_PLAYLIST_BLOCK_BEGIN);
+
+        /* shift playlist items */
+        memmove
+        (
+            &app->playlist.item[idx],
+            &app->playlist.item[idx + 1],
+            (app->playlist.count - idx - 1) * sizeof(playlist_item_t)
+        );
+
+        /* decrement items count */
+        app->playlist.count--;
+
+        /* increment servers indexes */
+        for(i = 0; i < app->players.count; i++)
+            if(app->players.item[i].playlist_start >= idx)
+                app->players.item[i].playlist_start--;
+
+
+    };
+
+    /* redraw playlist */
+    omnplay_playlist_draw(app);
+
+    /* select */
+    path = gtk_tree_path_new_from_indices(idxs[0], -1);
+    gtk_tree_selection_select_path(gtk_tree_view_get_selection(GTK_TREE_VIEW(app->playlist_grid)), path);
+    gtk_tree_view_set_cursor(GTK_TREE_VIEW(app->playlist_grid), path, NULL, FALSE);
+    gtk_tree_path_free(path);
+
+
+    pthread_mutex_unlock(&app->players.lock);
+    pthread_mutex_unlock(&app->playlist.lock);
+};
+
 static void omnplay_playlist_item_del(omnplay_instance_t* app)
 {
+    int i, idx, c;
+    int *list, *list2;
 
+    list = get_selected_items_playlist(app);
+    if(!list) return;
+
+    list2 = (int*)malloc(sizeof(int) * list[0]);
+
+    for(i = 0, c = 0; i < list[0]; i++)
+    {
+        /* check for playing block */
+        if(idx_in_players_range(app, list[i + 1]))
+            continue;
+
+        /* save index */
+        list2[c++] = list[i + 1];
+    };
+
+    if(c)
+        omnplay_playlist_delete_items(app, list2, c);
+
+    free(list2);
+    free(list);
 };
 
 static int omnplay_playlist_insert_check(omnplay_instance_t* app, int idx, playlist_item_type_t* t)
