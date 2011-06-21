@@ -428,7 +428,7 @@ static void omnplay_playlist_delete_items(omnplay_instance_t* app, int* idxs, in
         idx = idxs[j] - j;
 
         /* fix block types */
-        if(!idx)
+        if(idx)
             app->playlist.item[idx - 1].type = (playlist_item_type_t)(app->playlist.item[idx - 1].type |
                 OMNPLAY_PLAYLIST_BLOCK_END);
         if(idx + 1 < app->playlist.count)
@@ -814,7 +814,7 @@ static void omnplay_playlist_item_swap(omnplay_instance_t* app, int dir)
     omnplay_playlist_draw_item(app, b);
 
     /* fix block types */
-    if(!a)
+    if(a)
     {
         app->playlist.item[a - 1].type = (playlist_item_type_t)(app->playlist.item[a - 1].type |
             OMNPLAY_PLAYLIST_BLOCK_END);
