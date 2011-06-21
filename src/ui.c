@@ -636,7 +636,9 @@ int ui_playlist_item_dialog(omnplay_instance_t* app, playlist_item_t* item)
     {
         response = gtk_dialog_run(GTK_DIALOG(dlg));
 
-        if(GTK_RESPONSE_REJECT == response)
+        if( GTK_RESPONSE_REJECT == response ||
+            GTK_RESPONSE_DELETE_EVENT == response ||
+            GTK_RESPONSE_CANCEL == response)
         {
             r = 0;
             c = 0;
