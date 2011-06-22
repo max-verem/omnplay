@@ -56,6 +56,8 @@ void omnplay_library_normalize_item(omnplay_instance_t* app, playlist_item_t* it
 
     lib = omnplay_library_find(app, item->id);
 
+    item->error = 0;
+
     if(lib)
     {
 
