@@ -35,6 +35,8 @@ static const struct option long_options [] =
 {
     { "directory",              required_argument,    NULL,   '0'},
     { "player",                 required_argument,    NULL,   '1'},
+    { "library",                required_argument,    NULL,   '2'},
+    { "whois",                  required_argument,    NULL,   '3'},
     { "help",                   no_argument,          NULL,   'h'},
     { 0,                        0,                    0,      0}
 };
@@ -77,6 +79,16 @@ int omnplay_opt(int argc, char** argv, omnplay_instance_t* app)
                     app->players.item[app->players.count].app = app;
                     app->players.count++;
                 };
+                break;
+
+            /** --library */
+            case '2':
+                strncpy(app->library.filename, optarg, PATH_MAX);
+                break;
+
+            /** --whois */
+            case '3':
+                strncpy(app->library.whois, optarg, PATH_MAX);
                 break;
 
             default:

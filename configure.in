@@ -20,6 +20,10 @@ PKG_CHECK_MODULES(GTHREAD, [gthread-2.0 >= 2.26.0])
 AC_SUBST(GTHREAD_CFLAGS)
 AC_SUBST(GTHREAD_LIBS)
 
+PKG_CHECK_MODULES(CURL, [libcurl])
+AC_SUBST(CURL_CFLAGS)
+AC_SUBST(CURL_LIBS)
+
 AC_ARG_WITH([ommedia],
         [AS_HELP_STRING([--with-ommedia=path], [path to ommedia /Media API/])],
         [OMMEDIA_PATH=$withval],

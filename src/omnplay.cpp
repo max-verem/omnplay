@@ -873,7 +873,9 @@ static gboolean omnplay_button_click(omnplay_instance_t* app, control_buttons_t 
             omnplay_ctl(app, button);
             break;
         case BUTTON_LIBRARY_ADD:
+            break;
         case BUTTON_LIBRARY_REFRESH:
+            omnplay_library_refresh(app);
             break;
     };
 
@@ -972,6 +974,11 @@ void omnplay_init(omnplay_instance_t* app)
         gtk_signal_connect(GTK_OBJECT(app->buttons[i]), "clicked",
             GTK_SIGNAL_FUNC( on_button_click), app );
 
+    /* create lock */
+    pthread_mutex_init(&app->library.lock, &attr);
+
+    /* load library */
+    omnplay_library_load(app);
 };
 
 void omnplay_release(omnplay_instance_t* app)
@@ -990,4 +997,10 @@ void omnplay_release(omnplay_instance_t* app)
 
     /* destroy lock */
     pthread_mutex_destroy(&app->playlist.lock);
+
+    /* load library */
+    omnplay_library_save(app);
+
+    /* destroy library lock */
+    pthread_mutex_destroy(&app->library.lock);
 };

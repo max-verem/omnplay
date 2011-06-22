@@ -85,6 +85,7 @@ typedef enum playlist_item_type
 } playlist_item_type_t;
 
 #define MAX_PLAYLIST_ITEMS      1024
+#define MAX_LIBRARY_ITEMS       10240
 
 typedef struct playlist_item
 {
@@ -139,6 +140,14 @@ typedef struct omnplay_instance
         char* path;
         GdkPixbuf *block_icons[8];
     } playlist;
+    struct
+    {
+        playlist_item_t item[MAX_LIBRARY_ITEMS];
+        int count;
+        char filename[PATH_MAX];
+        char whois[PATH_MAX];
+        pthread_mutex_t lock;
+    } library;
 } omnplay_instance_t;
 
 omnplay_instance_t* omnplay_create(int argc, char** argv);
@@ -150,6 +159,9 @@ void omnplay_playlist_save(omnplay_instance_t* app);
 void omnplay_playlist_draw(omnplay_instance_t* app);
 void omnplay_playlist_draw_item(omnplay_instance_t* app, int idx);
 void omnplay_playlist_draw_item_rem(omnplay_instance_t* app, int idx, char* rem);
+void omnplay_library_load(omnplay_instance_t* app);
+void omnplay_library_save(omnplay_instance_t* app);
+void omnplay_library_refresh(omnplay_instance_t* app);
 
 #ifdef __cplusplus
 };
