@@ -168,6 +168,8 @@ int omnplay_get_content(omnplay_instance_t* app, playlist_item_t *items, int lim
     omnplay_get_content_cb_proc proc, void* data);
 int omnplay_whois_list(omnplay_instance_t* app, playlist_item_t *items, int* plimit);
 int omnplay_library_load_file(playlist_item_t* items, int *pcount, char* filename);
+playlist_item_t* omnplay_library_find(omnplay_instance_t* app, char* id);
+void omnplay_library_normalize_item(omnplay_instance_t* app, playlist_item_t* item);
 
 #ifdef __cplusplus
 };

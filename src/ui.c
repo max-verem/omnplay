@@ -655,7 +655,7 @@ int ui_playlist_item_dialog(omnplay_instance_t* app, playlist_item_t* item)
             item->player = gtk_combo_box_get_active(GTK_COMBO_BOX(combo));
 
             /* check if all data entered correctly */
-            if(item->dur && item->id[0])
+            if(item->id[0])
                 c = 0;
         };
     };

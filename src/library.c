@@ -32,6 +32,46 @@
 #include "ui.h"
 #include "timecode.h"
 
+playlist_item_t* omnplay_library_find(omnplay_instance_t* app, char* id)
+{
+    int i;
+    playlist_item_t* item = NULL;
+
+    pthread_mutex_lock(&app->library.lock);
+
+    for(i = 0; i < app->library.count && !item; i++)
+        if(!strcasecmp(id, app->library.item[i].id))
+            item = &app->library.item[i];
+
+    pthread_mutex_unlock(&app->library.lock);
+
+    return item;
+};
+
+void omnplay_library_normalize_item(omnplay_instance_t* app, playlist_item_t* item)
+{
+    playlist_item_t* lib;
+
+    pthread_mutex_lock(&app->library.lock);
+
+    lib = omnplay_library_find(app, item->id);
+
+    if(lib)
+    {
+
+        if(!item->title[0])
+            strcpy(item->title, lib->title);
+
+        if(!item->dur)
+        {
+            item->dur = lib->dur;
+            item->in = lib->in;
+        };
+    }
+
+    pthread_mutex_unlock(&app->library.lock);
+};
+
 void omnplay_library_sort(omnplay_instance_t* app)
 {
     int i, j, m;
@@ -226,3 +266,4 @@ void omnplay_library_draw(omnplay_instance_t* app)
 
     pthread_mutex_unlock(&app->library.lock);
 };
+

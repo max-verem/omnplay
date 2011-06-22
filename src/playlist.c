@@ -128,7 +128,10 @@ static int load_file_ply(omnplay_instance_t* app, char* filename)
     {
         pthread_mutex_lock(&app->playlist.lock);
         for(i = 0; i < count && app->playlist.count + 1 < MAX_PLAYLIST_ITEMS; i++)
+        {
+            omnplay_library_normalize_item(app, &items[i]);
             app->playlist.item[app->playlist.count++] = items[i];
+        };
         app->playlist.ver_curr++;
         pthread_mutex_unlock(&app->playlist.lock);
     }

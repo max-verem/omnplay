@@ -642,6 +642,7 @@ static void omnplay_playlist_item_add(omnplay_instance_t* app, int after)
     memset(&item, 0, sizeof(playlist_item_t));
     if(ui_playlist_item_dialog(app, &item))
     {
+        omnplay_library_normalize_item(app, &item);
         item.type = t;
         omnplay_playlist_insert_items(app, idx, &item, 1);
     };
@@ -666,6 +667,7 @@ static void omnplay_playlist_item_edit(omnplay_instance_t* app)
 
     if(ui_playlist_item_dialog(app, &item))
     {
+        omnplay_library_normalize_item(app, &item);
         app->playlist.item[idx] = item;
         omnplay_playlist_draw_item(app, idx);
     };
