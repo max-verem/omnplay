@@ -218,6 +218,8 @@ void omnplay_playlist_draw(omnplay_instance_t* app)
             5, frames2tc(app->playlist.item[i].dur, 25.0, tc2),
             6, app->playlist.item[i].title,
             7, i,
+            8, (app->playlist.item[i].error != 0),
+            9, (app->playlist.item[i].error & PLAYLIST_ITEM_ERROR_LIB)?"red":"orange",
             -1 );
     }
 
@@ -254,6 +256,8 @@ static gboolean omnplay_playlist_draw_item_proc(
         5, frames2tc(app->playlist.item[i].dur, 25.0, tc2),
         6, app->playlist.item[i].title,
         7, i,
+        8, (app->playlist.item[i].error != 0),
+        9, (app->playlist.item[i].error & PLAYLIST_ITEM_ERROR_LIB)?"red":"orange",
         -1 );
 
     return TRUE;

@@ -263,6 +263,8 @@ void omnplay_library_draw(omnplay_instance_t* app)
             1, frames2tc(app->library.item[i].dur, 25.0, tc),
             2, app->library.item[i].title,
             3, i,
+            4, FALSE,
+            5, "red",
             -1 );
     }
 

@@ -131,6 +131,7 @@ static GtkWidget* create_treeview(GtkWidget* top, char* name, const column_desc_
 
     treeview = gtk_tree_view_new ();
     gtk_widget_show (treeview);
+    gtk_tree_view_set_rules_hint(GTK_TREE_VIEW(treeview), TRUE);
 
     selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(treeview));
     gtk_tree_selection_set_mode(selection, GTK_SELECTION_MULTIPLE);
@@ -138,14 +139,17 @@ static GtkWidget* create_treeview(GtkWidget* top, char* name, const column_desc_
     for(i = 0, count = 0; columns[i].title; i++, count++)
         list_store_types[i] = (columns[i].type == G_TYPE_OBJECT)?GDK_TYPE_PIXBUF:columns[i].type;
     list_store_types[count] = G_TYPE_INT;
+    list_store_types[count + 1] = G_TYPE_BOOLEAN;
+    list_store_types[count + 2] = G_TYPE_STRING;
 
-    list_store = gtk_list_store_newv(count + 1, list_store_types);
+    list_store = gtk_list_store_newv(count + 3, list_store_types);
 
     gtk_tree_view_set_model( GTK_TREE_VIEW( treeview ), GTK_TREE_MODEL( list_store ) );
 
     for(i = 0; columns[i].title; i++)
     {
         char* prop;
+        column = NULL;
 
         if(columns[i].type == G_TYPE_OBJECT)
         {
@@ -162,10 +166,21 @@ static GtkWidget* create_treeview(GtkWidget* top, char* name, const column_desc_
         {
             renderer = gtk_cell_renderer_text_new();
             prop = "text";
+
+            column = gtk_tree_view_column_new_with_attributes(
+                columns[i].title, renderer,
+                    prop, i,
+                    "background-set", count + 1,
+                    "background", count + 2,
+                    NULL);
         }
 
-        column = gtk_tree_view_column_new_with_attributes(
-            columns[i].title, renderer, prop, i, NULL);
+        if(!column)
+            column = gtk_tree_view_column_new_with_attributes(
+                columns[i].title, renderer,
+                    prop, i,
+                    NULL);
+
         gtk_tree_view_append_column(GTK_TREE_VIEW( treeview ), column);
     };
 
