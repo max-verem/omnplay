@@ -32,11 +32,12 @@
 #include "ui.h"
 #include "timecode.h"
 
-static void omnplay_library_load_file(playlist_item_t* items, int *pcount, char* filename)
+int omnplay_library_load_file(playlist_item_t* items, int *pcount, char* filename)
 {
-    int i, c = 0;
+    int i, c = 0, r = 0;
     FILE* f;
     char *l;
+    int limit = *pcount;
     playlist_item_t item;
 
     /* allocate space for strings and items */
@@ -47,7 +48,7 @@ static void omnplay_library_load_file(playlist_item_t* items, int *pcount, char*
     /* open and process file */
     if((f = fopen(filename, "rt")))
     {
-        while( !feof(f) )
+        while( !feof(f) && c < (limit -1))
         {
             char *s, *sp_r, *sp_b;
 
@@ -60,7 +61,7 @@ static void omnplay_library_load_file(playlist_item_t* items, int *pcount, char*
             if( (s = strchr(l, '\r')) ) *s = 0;
 
             /* check for empty line */
-            if(l[0] && l[0] != '#')
+            if(l[0] && l[0] != '#' && l[0] != '|')
             {
                 memset(&item, 0, sizeof(playlist_item_t));
 
@@ -82,11 +83,15 @@ static void omnplay_library_load_file(playlist_item_t* items, int *pcount, char*
 
         fclose(f);
     }
+    else
+        r = -1;
 
     /* free data */
     free(l);
 
     *pcount = c;
+
+    return r;
 };
 
 void omnplay_library_load(omnplay_instance_t* app)
@@ -94,7 +99,10 @@ void omnplay_library_load(omnplay_instance_t* app)
     pthread_mutex_lock(&app->library.lock);
 
     if(app->library.filename[0])
+    {
+        app->library.count = MAX_LIBRARY_ITEMS;
         omnplay_library_load_file(app->library.item, &app->library.count, app->library.filename);
+    };
 
     pthread_mutex_unlock(&app->library.lock);
 
@@ -139,13 +147,30 @@ static void omnplay_get_content_cb(omnplay_instance_t* app, playlist_item_t* ite
 
 void omnplay_library_refresh(omnplay_instance_t* app)
 {
-    int count;
+    int count, i;
     playlist_item_t* items;
 
 
     items = (playlist_item_t*)malloc(sizeof(playlist_item_t) * MAX_LIBRARY_ITEMS);
 
     count = omnplay_get_content(app, items, MAX_LIBRARY_ITEMS, omnplay_get_content_cb, NULL);
+
+    if(count > 0)
+    {
+        if(app->library.whois[0])
+            omnplay_whois_list(app, items, &count);
+
+        pthread_mutex_lock(&app->library.lock);
+
+        for(i = 0; i < count; i++)
+            app->library.item[i] = items[i];
+
+        app->library.count = count;
+
+        pthread_mutex_unlock(&app->library.lock);
+
+        omnplay_library_draw(app);
+    };
 
     free(items);
 };
@@ -168,7 +193,7 @@ void omnplay_library_draw(omnplay_instance_t* app)
 
         gtk_list_store_set(list_store, &iter,
             0, app->library.item[i].id,
-            1, frames2tc(app->playlist.item[i].dur, 25.0, tc),
+            1, frames2tc(app->library.item[i].dur, 25.0, tc),
             2, app->library.item[i].title,
             3, i,
             -1 );
