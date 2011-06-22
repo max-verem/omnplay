@@ -84,8 +84,19 @@ int omnplay_get_content(omnplay_instance_t* app, playlist_item_t *items, int lim
 
 static gboolean on_main_window_delete_event( GtkWidget *widget, GdkEvent *event, gpointer user_data )
 {
-    gtk_exit(0);
-    return TRUE;
+    g_print ("delete event occurred [start]\n");
+    gdk_threads_leave();
+    omnplay_release((omnplay_instance_t*)user_data);
+    gdk_threads_enter();
+    g_print ("delete event occurred [finish]\n");
+
+    return FALSE;
+}
+
+static void on_main_window_destroy( GtkWidget *widget, gpointer user_data )
+{
+    g_print ("destroy occurred\n");
+    gtk_main_quit();
 }
 
 omnplay_instance_t* omnplay_create(int argc, char** argv)
@@ -994,8 +1005,11 @@ void omnplay_init(omnplay_instance_t* app)
 
     pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
 
-    gtk_signal_connect( GTK_OBJECT( app->window ), "destroy",
+    gtk_signal_connect( GTK_OBJECT( app->window ), "delete-event",
         GTK_SIGNAL_FUNC(on_main_window_delete_event), app);
+
+    gtk_signal_connect( GTK_OBJECT( app->window ), "destroy",
+        GTK_SIGNAL_FUNC(on_main_window_destroy), app);
 
     gtk_widget_add_events(app->playlist_grid, GDK_BUTTON_PRESS_MASK);
     gtk_signal_connect(GTK_OBJECT(app->playlist_grid), "key-press-event",

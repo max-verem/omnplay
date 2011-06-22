@@ -82,7 +82,6 @@ int main(int argc, char **argv)
         gdk_threads_enter();
         omnplay_init(app);
         gtk_main ();
-        omnplay_release(app);
         gdk_threads_leave();
     };
 
