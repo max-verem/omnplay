@@ -829,7 +829,7 @@ static void omnplay_ctl(omnplay_instance_t* app, control_buttons_t button)
 
 static void omnplay_playlist_item_swap(omnplay_instance_t* app, int dir)
 {
-    int sel, a, b;
+    int sel, a, b, e = 1;
     GtkTreePath* path;
     playlist_item_t item;
 
@@ -864,21 +864,25 @@ static void omnplay_playlist_item_swap(omnplay_instance_t* app, int dir)
     app->playlist.item[b] = item;
 
     /* rewite type */
-    app->playlist.item[a].type = OMNPLAY_PLAYLIST_ITEM_BLOCK_SINGLE;
-    app->playlist.item[b].type = OMNPLAY_PLAYLIST_ITEM_BLOCK_SINGLE;
+    if(app->playlist.item[a].type != app->playlist.item[b].type)
+    {
+        e = 0;
+        app->playlist.item[a].type = OMNPLAY_PLAYLIST_ITEM_BLOCK_SINGLE;
+        app->playlist.item[b].type = OMNPLAY_PLAYLIST_ITEM_BLOCK_SINGLE;
+    };
 
     /* redraw main items */
     omnplay_playlist_draw_item(app, a);
     omnplay_playlist_draw_item(app, b);
 
     /* fix block types */
-    if(a)
+    if(a && !e)
     {
         app->playlist.item[a - 1].type = (playlist_item_type_t)(app->playlist.item[a - 1].type |
             OMNPLAY_PLAYLIST_BLOCK_END);
         omnplay_playlist_draw_item(app, a - 1);
     };
-    if(b + 1 < app->playlist.count)
+    if(b + 1 < app->playlist.count && !e)
     {
         app->playlist.item[b + 1].type = (playlist_item_type_t)(app->playlist.item[b + 1].type |
             OMNPLAY_PLAYLIST_BLOCK_BEGIN);
@@ -979,6 +983,22 @@ static gboolean on_playlist_grid_key(GtkWidget *widget, GdkEventKey *event, gpoi
             if(event->state & GDK_CONTROL_MASK)
             {
                 fprintf(stderr, "CTRL+x\n");
+                return TRUE;
+            };
+            break;
+        case GDK_S:
+        case GDK_s:
+            if(event->state & GDK_CONTROL_MASK)
+            {
+                omnplay_playlist_save(app);
+                return TRUE;
+            };
+            break;
+        case GDK_O:
+        case GDK_o:
+            if(event->state & GDK_CONTROL_MASK)
+            {
+                omnplay_playlist_load(app);
                 return TRUE;
             };
             break;
