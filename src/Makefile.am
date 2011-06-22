@@ -15,6 +15,7 @@ omnplay_SOURCES = \
 	opts.c opts.h \
 	playlist.c \
 	library.c \
+	whois.c \
 	timecode.c timecode.h \
 	omnplay.cpp omnplay.h
 

@@ -166,7 +166,8 @@ void omnplay_library_draw(omnplay_instance_t* app);
 typedef void (*omnplay_get_content_cb_proc)(omnplay_instance_t* app, playlist_item_t *items, void* data);
 int omnplay_get_content(omnplay_instance_t* app, playlist_item_t *items, int limit,
     omnplay_get_content_cb_proc proc, void* data);
-
+int omnplay_whois_list(omnplay_instance_t* app, playlist_item_t *items, int* plimit);
+int omnplay_library_load_file(playlist_item_t* items, int *pcount, char* filename);
 
 #ifdef __cplusplus
 };
