@@ -32,9 +32,9 @@
 #include "ui.h"
 #include "timecode.h"
 
-void omnplay_library_load(omnplay_instance_t* app)
+static void omnplay_library_load_file(playlist_item_t* items, int *pcount, char* filename)
 {
-    int i;
+    int i, c = 0;
     FILE* f;
     char *l;
     playlist_item_t item;
@@ -42,12 +42,10 @@ void omnplay_library_load(omnplay_instance_t* app)
     /* allocate space for strings and items */
     l = malloc(PATH_MAX);
 
-    pthread_mutex_lock(&app->library.lock);
-
-    app->library.count = 0;
+    *pcount = 0;
 
     /* open and process file */
-    if(app->library.filename[0] && (f = fopen(app->library.filename, "rt")))
+    if((f = fopen(filename, "rt")))
     {
         while( !feof(f) )
         {
@@ -78,41 +76,58 @@ void omnplay_library_load(omnplay_instance_t* app)
                 };
 
                 /* insert item */
-                app->library.item[app->library.count++] = item;
+                items[c++] = item;
             };
         }
 
         fclose(f);
     }
 
-    pthread_mutex_unlock(&app->library.lock);
-
     /* free data */
     free(l);
+
+    *pcount = c;
+};
+
+void omnplay_library_load(omnplay_instance_t* app)
+{
+    pthread_mutex_lock(&app->library.lock);
+
+    if(app->library.filename[0])
+        omnplay_library_load_file(app->library.item, &app->library.count, app->library.filename);
+
+    pthread_mutex_unlock(&app->library.lock);
 
     omnplay_library_draw(app);
 };
 
-void omnplay_library_save(omnplay_instance_t* app)
+static void omnplay_library_save_file(playlist_item_t* item, int count, char* filename)
 {
     int i;
     FILE* f;
 
-    pthread_mutex_lock(&app->library.lock);
-
-    if(app->library.filename[0] && (f = fopen(app->library.filename, "wt")))
+    if((f = fopen(filename, "wt")))
     {
         char tc_in[32], tc_dur[32];
 
-        for(i = 0; i < app->library.count; i++)
+        for(i = 0; i < count; i++)
             fprintf(f, "%s\t%s\t%s\t%s\n",
-                app->library.item[i].id,
-                frames2tc(app->library.item[i].in, 25.0, tc_in),
-                frames2tc(app->library.item[i].dur, 25.0, tc_dur),
-                app->library.item[i].title);
+                item[i].id,
+                frames2tc(item[i].in, 25.0, tc_in),
+                frames2tc(item[i].dur, 25.0, tc_dur),
+                item[i].title);
 
         fclose(f);
     };
+};
+
+void omnplay_library_save(omnplay_instance_t* app)
+{
+    pthread_mutex_lock(&app->library.lock);
+
+    if(app->library.filename[0])
+        omnplay_library_save_file(app->library.item, app->library.count,
+            app->library.filename);
 
     pthread_mutex_unlock(&app->library.lock);
 };
