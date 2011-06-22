@@ -32,6 +32,27 @@
 #include "ui.h"
 #include "timecode.h"
 
+void omnplay_library_sort(omnplay_instance_t* app)
+{
+    int i, j, m;
+    playlist_item_t item;
+
+    for(i = 0; i < app->library.count; i++)
+    {
+        /* find max */
+        for(j = i + 1, m = i; j < app->library.count; j++)
+            if(strcasecmp(app->library.item[j].id, app->library.item[m].id) < 0)
+                m = j;
+
+        if(m != i)
+        {
+            item = app->library.item[i];
+            app->library.item[i] = app->library.item[m];
+            app->library.item[m] = item;
+        };
+    };
+};
+
 int omnplay_library_load_file(playlist_item_t* items, int *pcount, char* filename)
 {
     int i, c = 0, r = 0;
@@ -104,6 +125,8 @@ void omnplay_library_load(omnplay_instance_t* app)
         omnplay_library_load_file(app->library.item, &app->library.count, app->library.filename);
     };
 
+    omnplay_library_sort(app);
+
     pthread_mutex_unlock(&app->library.lock);
 
     omnplay_library_draw(app);
@@ -166,6 +189,8 @@ void omnplay_library_refresh(omnplay_instance_t* app)
             app->library.item[i] = items[i];
 
         app->library.count = count;
+
+        omnplay_library_sort(app);
 
         pthread_mutex_unlock(&app->library.lock);
 
