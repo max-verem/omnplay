@@ -162,6 +162,7 @@ void omnplay_playlist_draw_item_rem(omnplay_instance_t* app, int idx, char* rem)
 void omnplay_library_load(omnplay_instance_t* app);
 void omnplay_library_save(omnplay_instance_t* app);
 void omnplay_library_refresh(omnplay_instance_t* app);
+void omnplay_library_draw(omnplay_instance_t* app);
 
 #ifdef __cplusplus
 };
