@@ -39,6 +39,49 @@
 
 #include "omplrclnt.h"
 
+int omnplay_get_content(omnplay_instance_t* app, playlist_item_t *items, int limit,
+    omnplay_get_content_cb_proc proc, void* data)
+{
+    int r, c = 0;
+    OmPlrClipInfo clip_info;
+    char clip_name[omPlrMaxClipDirLen];
+
+    pthread_mutex_lock(&app->players.lock);
+
+    r = OmPlrClipGetFirst((OmPlrHandle)app->players.item[0].handle, clip_name, sizeof(clip_name));
+    for(; c < limit && !r;)
+    {
+        /* get clip info */
+        clip_info.maxMsTracks = 0;
+        clip_info.size = sizeof(clip_info);
+
+        r = OmPlrClipGetInfo((OmPlrHandle)app->players.item[0].handle, clip_name, &clip_info);
+
+        if(!r)
+        {
+            /* copy item props */
+            strncpy(items[c].id, clip_name, PATH_MAX);
+            items[c].in = clip_info.firstFrame;
+            items[c].dur = clip_info.lastFrame - clip_info.firstFrame;
+
+            /* callback */
+            pthread_mutex_unlock(&app->players.lock);
+            if(proc)
+                proc(app, &items[c], data);
+            pthread_mutex_lock(&app->players.lock);
+
+            c++;
+        };
+
+        r = OmPlrClipGetNext((OmPlrHandle)app->players.item[0].handle, clip_name, sizeof(clip_name));
+    };
+
+    pthread_mutex_unlock(&app->players.lock);
+
+    return c;
+};
+
+
 static gboolean on_main_window_delete_event( GtkWidget *widget, GdkEvent *event, gpointer user_data )
 {
     gtk_exit(0);

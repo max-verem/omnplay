@@ -163,6 +163,10 @@ void omnplay_library_load(omnplay_instance_t* app);
 void omnplay_library_save(omnplay_instance_t* app);
 void omnplay_library_refresh(omnplay_instance_t* app);
 void omnplay_library_draw(omnplay_instance_t* app);
+typedef void (*omnplay_get_content_cb_proc)(omnplay_instance_t* app, playlist_item_t *items, void* data);
+int omnplay_get_content(omnplay_instance_t* app, playlist_item_t *items, int limit,
+    omnplay_get_content_cb_proc proc, void* data);
+
 
 #ifdef __cplusplus
 };
