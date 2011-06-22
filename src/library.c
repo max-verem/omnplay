@@ -68,6 +68,8 @@ void omnplay_library_normalize_item(omnplay_instance_t* app, playlist_item_t* it
             item->in = lib->in;
         };
     }
+    else
+        item->error = PLAYLIST_ITEM_ERROR_LIB;
 
     pthread_mutex_unlock(&app->library.lock);
 };

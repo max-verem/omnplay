@@ -86,6 +86,8 @@ typedef enum playlist_item_type
 
 #define MAX_PLAYLIST_ITEMS      1024
 #define MAX_LIBRARY_ITEMS       10240
+#define PLAYLIST_ITEM_ERROR_LIB 1
+#define PLAYLIST_ITEM_ERROR_CUE 2
 
 typedef struct playlist_item
 {
@@ -97,6 +99,7 @@ typedef struct playlist_item
     playlist_item_type_t type;
     int omn_idx;
     int omn_offset;
+    int error;
 } playlist_item_t;
 
 #define MAX_PLAYERS 4

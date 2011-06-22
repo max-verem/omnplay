@@ -768,11 +768,13 @@ static void omnplay_ctl(omnplay_instance_t* app, control_buttons_t button)
                 fprintf(stderr, "cue: failed with %d, %s\n", r, OmPlrGetErrorString((OmPlrError)r));
                 app->playlist.item[i].omn_idx = -1;
                 app->playlist.item[i].omn_offset = -1;
+                app->playlist.item[i].error |= PLAYLIST_ITEM_ERROR_CUE;
             }
             else
             {
                 app->playlist.item[i].omn_idx = c;
                 app->playlist.item[i].omn_offset = o;
+                app->playlist.item[i].error &= 0xF ^ PLAYLIST_ITEM_ERROR_CUE;
 
                 /* save selected item offset */
                 if(i == idx) p = o;
