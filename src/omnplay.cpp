@@ -1117,3 +1117,13 @@ void omnplay_release(omnplay_instance_t* app)
     /* destroy library lock */
     pthread_mutex_destroy(&app->library.lock);
 };
+
+void omnplay_playlist_normalize(omnplay_instance_t* app)
+{
+    int i;
+
+    /* normalize playlist */
+    for(i = 0; i < app->playlist.count; i++)
+        if(omnplay_library_normalize_item(app, &app->playlist.item[i]))
+            omnplay_playlist_draw_item(app, i);
+};

@@ -48,8 +48,9 @@ playlist_item_t* omnplay_library_find(omnplay_instance_t* app, char* id)
     return item;
 };
 
-void omnplay_library_normalize_item(omnplay_instance_t* app, playlist_item_t* item)
+int omnplay_library_normalize_item(omnplay_instance_t* app, playlist_item_t* item)
 {
+    int r = 0;
     playlist_item_t* lib;
 
     pthread_mutex_lock(&app->library.lock);
@@ -62,18 +63,27 @@ void omnplay_library_normalize_item(omnplay_instance_t* app, playlist_item_t* it
     {
 
         if(!item->title[0])
+        {
             strcpy(item->title, lib->title);
+            r = 1;
+        };
 
-        if(!item->dur)
+        if(!item->dur || item->in < lib->in || (item->in + item->dur) > (lib->in + lib->dur))
         {
             item->dur = lib->dur;
             item->in = lib->in;
+            r = 1;
         };
     }
     else
+    {
+        r = 1;
         item->error = PLAYLIST_ITEM_ERROR_LIB;
+    };
 
     pthread_mutex_unlock(&app->library.lock);
+
+    return r;
 };
 
 void omnplay_library_sort(omnplay_instance_t* app)
@@ -217,7 +227,6 @@ void omnplay_library_refresh(omnplay_instance_t* app)
     int count, i;
     playlist_item_t* items;
 
-
     items = (playlist_item_t*)malloc(sizeof(playlist_item_t) * MAX_LIBRARY_ITEMS);
 
     count = omnplay_get_content(app, items, MAX_LIBRARY_ITEMS, omnplay_get_content_cb, NULL);
@@ -242,6 +251,8 @@ void omnplay_library_refresh(omnplay_instance_t* app)
     };
 
     free(items);
+
+    omnplay_playlist_normalize(app);
 };
 
 void omnplay_library_draw(omnplay_instance_t* app)
