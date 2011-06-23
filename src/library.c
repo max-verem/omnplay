@@ -21,12 +21,17 @@
 #  include <config.h>
 #endif
 
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>
 #include <pthread.h>
+#include <string.h>
 
 #include "omnplay.h"
 #include "ui.h"
@@ -386,4 +391,33 @@ playlist_item_t* omnplay_library_get_selected(omnplay_instance_t* app, int *coun
 
 void omnplay_library_search(omnplay_instance_t* app, int next)
 {
+    int idx = 0, i;
+    int* idxs;
+    const char *search;
+
+    pthread_mutex_lock(&app->library.lock);
+
+    idxs = get_selected_idx_library(app);
+    if(idxs) idx = idxs[1];
+    free(idxs);
+
+    if(!next) idx = 0;
+
+    search = gtk_entry_get_text(GTK_ENTRY(app->library.search));
+
+    if(search[0])
+    {
+        for(i = idx; i < app->library.count; i++)
+            if( strcasestr(app->library.item[i].id, search) ||
+                strcasestr(app->library.item[i].title, search))
+                    break;
+
+        if(i < app->library.count)
+        {
+            fprintf(stderr, "found at pos=%d\n", i);
+
+        };
+    };
+
+    pthread_mutex_unlock(&app->library.lock);
 };
