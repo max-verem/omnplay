@@ -29,6 +29,7 @@ extern "C"
 
 GtkWidget* ui_omnplay(omnplay_instance_t* app);
 int ui_playlist_item_dialog(omnplay_instance_t* app, playlist_item_t* item);
+void ui_library_refresh(omnplay_instance_t* app, GtkWidget **p_win, GtkWidget **p_label);
 
 #ifdef __cplusplus
 };

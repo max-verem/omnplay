@@ -219,11 +219,15 @@ void omnplay_library_save(omnplay_instance_t* app)
 
 static void omnplay_get_content_cb(omnplay_instance_t* app, playlist_item_t* item, void* data)
 {
-    fprintf(stderr, "requested: id=[%s]\n", item->id);
+    gdk_threads_enter();
+    gtk_label_set_text(GTK_LABEL(app->library.refresh_ui[1]), item->id);
+    gdk_flush();
+    gdk_threads_leave();
 };
 
-void omnplay_library_refresh(omnplay_instance_t* app)
+static void* omnplay_library_refresh_proc(void* data)
 {
+    omnplay_instance_t* app = (omnplay_instance_t*)data;
     int count, i;
     playlist_item_t* items;
 
@@ -233,6 +237,11 @@ void omnplay_library_refresh(omnplay_instance_t* app)
 
     if(count > 0)
     {
+        gdk_threads_enter();
+        gtk_label_set_text(GTK_LABEL(app->library.refresh_ui[1]), "Quering whois...");
+        gdk_flush();
+        gdk_threads_leave();
+
         if(app->library.whois[0])
             omnplay_whois_list(app, items, &count);
 
@@ -247,12 +256,34 @@ void omnplay_library_refresh(omnplay_instance_t* app)
 
         pthread_mutex_unlock(&app->library.lock);
 
+        gdk_threads_enter();
         omnplay_library_draw(app);
+        gdk_flush();
+        gdk_threads_leave();
     };
 
     free(items);
 
+    gdk_threads_enter();
     omnplay_playlist_normalize(app);
+    gtk_widget_destroy(app->library.refresh_ui[0]);
+    gdk_flush();
+    gdk_threads_leave();
+
+    return NULL;
+};
+
+void omnplay_library_refresh(omnplay_instance_t* app)
+{
+    if(app->library.refresh_ui[0])
+        pthread_join(app->library.refresh_thread, NULL);
+
+    /* create UI for monitoring update */
+    ui_library_refresh(app, &app->library.refresh_ui[0], &app->library.refresh_ui[1]);
+
+    pthread_create(&app->library.refresh_thread, NULL,
+        omnplay_library_refresh_proc, app);
+
 };
 
 void omnplay_library_draw(omnplay_instance_t* app)
