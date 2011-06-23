@@ -173,6 +173,7 @@ int omnplay_whois_list(omnplay_instance_t* app, playlist_item_t *items, int* pli
 int omnplay_library_load_file(playlist_item_t* items, int *pcount, char* filename);
 playlist_item_t* omnplay_library_find(omnplay_instance_t* app, char* id);
 void omnplay_library_normalize_item(omnplay_instance_t* app, playlist_item_t* item);
+playlist_item_t* omnplay_library_get_selected(omnplay_instance_t* app, int *count);
 
 #ifdef __cplusplus
 };

@@ -273,3 +273,71 @@ void omnplay_library_draw(omnplay_instance_t* app)
     pthread_mutex_unlock(&app->library.lock);
 };
 
+static void get_selected_idx_library_proc(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter, gpointer data)
+{
+    int idx, *list = (int*)data;
+    gtk_tree_model_get(model, iter, 3, &idx, -1);
+    list[list[0] + 1] = idx;
+    list[0] = list[0] + 1;
+};
+
+static int* get_selected_idx_library(omnplay_instance_t* app)
+{
+    int* list = NULL;
+    GtkTreeSelection *selection;
+
+    selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(app->library_grid));
+    if(selection)
+    {
+        list = (int*)malloc(sizeof(int) * (MAX_LIBRARY_ITEMS + 1));
+        memset(list, 0, sizeof(int) * (MAX_LIBRARY_ITEMS + 1));
+
+        gtk_tree_selection_selected_foreach(
+            selection,
+            get_selected_idx_library_proc,
+            list);
+
+        if(!list[0])
+        {
+            free(list);
+            list = NULL;
+        };
+    };
+
+    return list;
+};
+
+
+playlist_item_t* omnplay_library_get_selected(omnplay_instance_t* app, int *count)
+{
+    int* idxs;
+    playlist_item_t* items = NULL;
+
+    pthread_mutex_lock(&app->library.lock);
+
+    *count = 0;
+
+    idxs = get_selected_idx_library(app);
+
+    if(idxs)
+    {
+        int i;
+
+        /* alloc items */
+        items = (playlist_item_t*)malloc(sizeof(playlist_item_t) * (idxs[0] + 1));
+
+        /* clear last item */
+        memset(&items[idxs[0]], 0, sizeof(playlist_item_t));
+
+        /* copy items */
+        for(i = 0; i < idxs[0]; i++)
+            items[i] = app->library.item[idxs[i + 1]];
+
+        *count = idxs[0];
+        free(idxs);
+    };
+
+    pthread_mutex_unlock(&app->library.lock);
+
+    return items;
+};
