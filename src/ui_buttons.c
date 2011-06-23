@@ -174,17 +174,17 @@ static const button_desc_t buttons[] =
         BUTTON_LIBRARY_FIND,
         "Find item",
         NULL,
-        "Find",
-        "button_library_find",
         NULL,
+        "button_library_find",
+        "Axialis_Team_search_in_library_16x16.png"
     },
     {
         BUTTON_LIBRARY_FIND_NEXT,
         "Find next item",
         NULL,
-        "Next",
-        "button_library_find_next",
         NULL,
+        "button_library_find_next",
+        "Axialis_Team_search_next_16x16.png"
     },
 
     {
