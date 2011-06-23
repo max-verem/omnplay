@@ -394,6 +394,7 @@ void omnplay_library_search(omnplay_instance_t* app, int next)
     int idx = 0, i;
     int* idxs;
     const char *search;
+    GtkTreePath* path;
 
     pthread_mutex_lock(&app->library.lock);
 
@@ -402,6 +403,7 @@ void omnplay_library_search(omnplay_instance_t* app, int next)
     free(idxs);
 
     if(!next) idx = 0;
+    else idx++;
 
     search = gtk_entry_get_text(GTK_ENTRY(app->library.search));
 
@@ -416,6 +418,12 @@ void omnplay_library_search(omnplay_instance_t* app, int next)
         {
             fprintf(stderr, "found at pos=%d\n", i);
 
+            /* select */
+            path = gtk_tree_path_new_from_indices(i, -1);
+            gtk_tree_selection_select_path(gtk_tree_view_get_selection(
+                GTK_TREE_VIEW(app->library_grid)), path);
+            gtk_tree_view_set_cursor(GTK_TREE_VIEW(app->library_grid), path, NULL, FALSE);
+            gtk_tree_path_free(path);
         };
     };
 
