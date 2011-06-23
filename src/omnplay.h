@@ -48,6 +48,9 @@ typedef enum control_buttons
     BUTTON_LIBRARY_ADD,
     BUTTON_LIBRARY_REFRESH,
 
+    BUTTON_LIBRARY_FIND,
+    BUTTON_LIBRARY_FIND_NEXT,
+
     BUTTON_LAST
 } control_buttons_t;
 
@@ -152,6 +155,7 @@ typedef struct omnplay_instance
         pthread_mutex_t lock;
         pthread_t refresh_thread;
         GtkWidget *refresh_ui[2];
+        GtkWidget *search;
     } library;
 } omnplay_instance_t;
 

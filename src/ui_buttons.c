@@ -170,7 +170,22 @@ static const button_desc_t buttons[] =
         "button_library_refresh",
         "Axialis_Team_library_refresh_16x16.png"
     },
-
+    {
+        BUTTON_LIBRARY_FIND,
+        "Find item",
+        NULL,
+        "Find",
+        "button_library_find",
+        NULL,
+    },
+    {
+        BUTTON_LIBRARY_FIND_NEXT,
+        "Find next item",
+        NULL,
+        "Next",
+        "button_library_find_next",
+        NULL,
+    },
 
     {
         BUTTON_LAST,

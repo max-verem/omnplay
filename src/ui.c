@@ -229,6 +229,30 @@ static GtkWidget* pane_library_buttons(GtkWidget* top, omnplay_instance_t* app)
     return hbox;
 }
 
+static GtkWidget* pane_library_search_buttons(GtkWidget* top, omnplay_instance_t* app)
+{
+    GtkWidget* hbox;
+
+    hbox = gtk_hbox_new (FALSE, 0);
+    gtk_widget_show (hbox);
+
+    /* text entry */
+    gtk_box_pack_start (GTK_BOX (hbox),
+        app->library.search = gtk_entry_new(),
+            TRUE, TRUE, 0);
+    gtk_widget_show(app->library.search);
+
+    /* playlist modify buttons */
+    gtk_box_pack_start (GTK_BOX (hbox),
+        ui_create_button(top, app, BUTTON_LIBRARY_FIND),
+            FALSE, FALSE, 0);
+    gtk_box_pack_start (GTK_BOX (hbox),
+        ui_create_button(top, app, BUTTON_LIBRARY_FIND_NEXT),
+            FALSE, FALSE, 0);
+
+    return hbox;
+}
+
 static GtkWidget* pane_library(GtkWidget* top, omnplay_instance_t* app)
 {
     GtkWidget* vbox;
@@ -242,10 +266,15 @@ static GtkWidget* pane_library(GtkWidget* top, omnplay_instance_t* app)
         pane_library_buttons(top, app),
         FALSE, FALSE, 0);
 
-    /* add buttons box */
+    /* add grid */
     gtk_box_pack_start (GTK_BOX (vbox),
         pane_library_grid(top, app),
         TRUE, TRUE, 0);
+
+    /* add search buttons */
+    gtk_box_pack_start (GTK_BOX (vbox),
+        pane_library_search_buttons(top, app),
+        FALSE, FALSE, 0);
 
     return vbox;
 }
