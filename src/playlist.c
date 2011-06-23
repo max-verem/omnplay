@@ -74,12 +74,13 @@ static int load_file_ply(omnplay_instance_t* app, char* filename)
                 if (6 != sscanf(l, "%128[^,],%128[^,],%128[^,],%128[^,],%128[^,],%128[^,],%s",
                     ID, CH, B, IN, OUT, DUR, REST))
                 {
+                    int b = atol(B);
                     /* setup item */
                     tc2frames(IN, 25.0, &items[count].in);
                     tc2frames(DUR, 25.0, &items[count].dur);
                     strncpy(items[count].id, ID, PATH_MAX);
                     items[count].player = atol(CH) - 1;
-                    switch(atol(B))
+                    switch(b)
                     {
                         case 1: items[count].type = OMNPLAY_PLAYLIST_ITEM_BLOCK_SINGLE; break;
                         case 2: items[count].type = OMNPLAY_PLAYLIST_ITEM_LOOP_BEGIN; break;
@@ -95,6 +96,9 @@ static int load_file_ply(omnplay_instance_t* app, char* filename)
                             else
                                 items[count].type = OMNPLAY_PLAYLIST_ITEM_BLOCK_BEGIN;
                             break;
+                        default:
+                            if(b >= 1024)
+                                items[count].type = b - 1024;
                     };
 #if 0
                     {
@@ -189,8 +193,65 @@ void omnplay_playlist_load(omnplay_instance_t* app)
     gtk_widget_destroy (dialog);
 };
 
+static int save_file_ply(omnplay_instance_t* app, char* filename)
+{
+    int i;
+    FILE* f;
+    char tc1[12], tc2[12], tc3[12];
+
+    if((f = fopen(filename, "wt")))
+    {
+        for(i = 0; i < app->playlist.count; i++)
+            fprintf(f, "%s,%d,%d,%s,%s,%s,,,,,,,,\n",
+                app->playlist.item[i].id,
+                app->playlist.item[i].player + 1,
+                app->playlist.item[i].type + 1024,
+                frames2tc(app->playlist.item[i].in, 25.0, tc1),
+                frames2tc(app->playlist.item[i].in + app->playlist.item[i].dur, 25.0, tc2),
+                frames2tc(app->playlist.item[i].dur, 25.0, tc3));
+    };
+
+    return 0;
+};
+
 void omnplay_playlist_save(omnplay_instance_t* app)
 {
+    int r;
+    GtkWidget *dialog;
+
+    dialog = gtk_file_chooser_dialog_new("Save File",
+        GTK_WINDOW (app->window),
+        GTK_FILE_CHOOSER_ACTION_SAVE,
+        GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+        GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT,
+        NULL);
+
+    gtk_file_chooser_set_do_overwrite_confirmation(GTK_FILE_CHOOSER(dialog), TRUE);
+
+    gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER(dialog),
+        (app->playlist.path)?app->playlist.path:getenv("HOME"));
+
+    r = gtk_dialog_run(GTK_DIALOG(dialog));
+
+    if(r == GTK_RESPONSE_ACCEPT)
+    {
+        char *filename;
+
+        filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
+
+        r = save_file_ply(app, filename);
+
+        if(app->playlist.path)
+            g_free(app->playlist.path);
+        if((app->playlist.path = filename))
+        {
+            char* e = strrchr(app->playlist.path, '/');
+            if(e) *e = 0;
+        }
+    }
+
+    gtk_widget_destroy (dialog);
+
 };
 
 void omnplay_playlist_draw(omnplay_instance_t* app)
