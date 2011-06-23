@@ -482,12 +482,16 @@ static void omnplay_playlist_delete_items(omnplay_instance_t* app, int* idxs, in
         idx = idxs[j] - j;
 
         /* fix block types */
-        if(idx)
-            app->playlist.item[idx - 1].type = (playlist_item_type_t)(app->playlist.item[idx - 1].type |
-                OMNPLAY_PLAYLIST_BLOCK_END);
-        if(idx + 1 < app->playlist.count)
-            app->playlist.item[idx + 1].type = (playlist_item_type_t)(app->playlist.item[idx + 1].type |
-                OMNPLAY_PLAYLIST_BLOCK_BEGIN);
+        if( app->playlist.item[idx].type != OMNPLAY_PLAYLIST_ITEM_BLOCK_BODY &&
+            app->playlist.item[idx].type != OMNPLAY_PLAYLIST_ITEM_LOOP_BODY)
+        {
+            if(idx)
+                app->playlist.item[idx - 1].type = (playlist_item_type_t)(app->playlist.item[idx - 1].type |
+                    OMNPLAY_PLAYLIST_BLOCK_END);
+            if(idx + 1 < app->playlist.count)
+                app->playlist.item[idx + 1].type = (playlist_item_type_t)(app->playlist.item[idx + 1].type |
+                    OMNPLAY_PLAYLIST_BLOCK_BEGIN);
+        };
 
         /* shift playlist items */
         memmove
