@@ -1156,6 +1156,28 @@ static gboolean on_library_grid_key(GtkWidget *widget, GdkEventKey *event, gpoin
     return FALSE;
 };
 
+static gboolean on_library_grid_button(GtkWidget *widget, GdkEventButton *event, gpointer data)
+{
+    if(event->button==1 && event->type==GDK_2BUTTON_PRESS)
+    {
+        omnplay_library_add((omnplay_instance_t* )data, 0);
+        return TRUE;
+    };
+
+    return FALSE;
+};
+
+static gboolean on_playlist_grid_button(GtkWidget *widget, GdkEventButton *event, gpointer data)
+{
+    if(event->button==1 && event->type==GDK_2BUTTON_PRESS)
+    {
+        omnplay_ctl((omnplay_instance_t* )data, BUTTON_PLAYER_CUE);
+        return TRUE;
+    };
+
+    return FALSE;
+};
+
 void omnplay_init(omnplay_instance_t* app)
 {
     int i;
@@ -1176,6 +1198,12 @@ void omnplay_init(omnplay_instance_t* app)
     gtk_widget_add_events(app->library_grid, GDK_BUTTON_PRESS_MASK);
     gtk_signal_connect(GTK_OBJECT(app->library_grid), "key-press-event",
         GTK_SIGNAL_FUNC(on_library_grid_key), app);
+
+    gtk_signal_connect(GTK_OBJECT(app->playlist_grid), "button-press-event",
+        GTK_SIGNAL_FUNC(on_playlist_grid_button), app);
+
+    gtk_signal_connect(GTK_OBJECT(app->library_grid), "button-press-event",
+        GTK_SIGNAL_FUNC(on_library_grid_button), app);
 
     /* create lock */
     pthread_mutex_init(&app->players.lock, &attr);
