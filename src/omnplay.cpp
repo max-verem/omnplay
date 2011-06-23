@@ -899,7 +899,7 @@ static void omnplay_playlist_item_swap(omnplay_instance_t* app, int dir)
     pthread_mutex_unlock(&app->playlist.lock);
 };
 
-static void omnpay_library_add(omnplay_instance_t* app, int after)
+static void omnplay_library_add(omnplay_instance_t* app, int after)
 {
     int idx, c, i;
     playlist_item_t* items;
@@ -966,7 +966,7 @@ static gboolean omnplay_button_click(omnplay_instance_t* app, control_buttons_t 
             omnplay_ctl(app, button);
             break;
         case BUTTON_LIBRARY_ADD:
-            omnpay_library_add(app, 0);
+            omnplay_library_add(app, 0);
             break;
         case BUTTON_LIBRARY_REFRESH:
             omnplay_library_refresh(app);
