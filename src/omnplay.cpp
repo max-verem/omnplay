@@ -899,6 +899,37 @@ static void omnplay_playlist_item_swap(omnplay_instance_t* app, int dir)
     pthread_mutex_unlock(&app->playlist.lock);
 };
 
+static void omnpay_library_add(omnplay_instance_t* app, int after)
+{
+    int idx, c, i;
+    playlist_item_t* items;
+    playlist_item_type_t t;
+
+    /* find insert position */
+    idx = get_first_selected_item_playlist(app);
+    if(idx < 0)
+        idx = 0;
+    else
+        idx += (after)?1:0;
+
+    if(!omnplay_playlist_insert_check(app, idx, &t))
+        return;
+
+    items = omnplay_library_get_selected(app, &c);
+
+    /* clear item */
+    if(items)
+    {
+        for(i = 0; i < c; i++)
+        {
+            items[i].type = t;
+            items[i].error = 0;
+        };
+        omnplay_playlist_insert_items(app, idx, items, c);
+    };
+};
+
+
 static gboolean omnplay_button_click(omnplay_instance_t* app, control_buttons_t button)
 {
     switch(button)
@@ -935,6 +966,7 @@ static gboolean omnplay_button_click(omnplay_instance_t* app, control_buttons_t 
             omnplay_ctl(app, button);
             break;
         case BUTTON_LIBRARY_ADD:
+            omnpay_library_add(app, 0);
             break;
         case BUTTON_LIBRARY_REFRESH:
             omnplay_library_refresh(app);
