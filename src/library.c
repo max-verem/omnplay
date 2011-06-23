@@ -383,3 +383,7 @@ playlist_item_t* omnplay_library_get_selected(omnplay_instance_t* app, int *coun
 
     return items;
 };
+
+void omnplay_library_search(omnplay_instance_t* app, int next)
+{
+};

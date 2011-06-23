@@ -971,6 +971,12 @@ static gboolean omnplay_button_click(omnplay_instance_t* app, control_buttons_t 
         case BUTTON_LIBRARY_REFRESH:
             omnplay_library_refresh(app);
             break;
+        case BUTTON_LIBRARY_FIND:
+            omnplay_library_search(app, 0);
+            break;
+        case BUTTON_LIBRARY_FIND_NEXT:
+            omnplay_library_search(app, 1);
+            break;
     };
 
     return TRUE;

@@ -181,6 +181,7 @@ playlist_item_t* omnplay_library_find(omnplay_instance_t* app, char* id);
 int omnplay_library_normalize_item(omnplay_instance_t* app, playlist_item_t* item);
 playlist_item_t* omnplay_library_get_selected(omnplay_instance_t* app, int *count);
 void omnplay_playlist_normalize(omnplay_instance_t* app);
+void omnplay_library_search(omnplay_instance_t* app, int next);
 
 #ifdef __cplusplus
 };
