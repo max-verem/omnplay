@@ -157,6 +157,11 @@ typedef struct omnplay_instance
         GtkWidget *refresh_ui[2];
         GtkWidget *search;
     } library;
+    struct
+    {
+        playlist_item_t item[MAX_LIBRARY_ITEMS];
+        int count;
+    } clipboard;
 } omnplay_instance_t;
 
 omnplay_instance_t* omnplay_create(int argc, char** argv);

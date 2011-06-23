@@ -994,6 +994,48 @@ static gboolean on_button_click(GtkWidget *button, gpointer user_data)
     return FALSE;
 };
 
+static void omnplay_playlist_item_copy(omnplay_instance_t* app)
+{
+    int *list, i;
+
+    list = get_selected_items_playlist(app);
+    if(!list) return;
+
+    for(i = 0; i < list[0]; i++)
+        app->clipboard.item[i] = app->playlist.item[list[i + 1]];
+    app->clipboard.count = list[0];
+
+    free(list);
+};
+
+static void omnplay_playlist_item_paste(omnplay_instance_t* app, int after)
+{
+    int idx, i;
+    playlist_item_t* items;
+    playlist_item_type_t t;
+
+    /* find insert position */
+    idx = get_first_selected_item_playlist(app);
+    if(idx < 0)
+        idx = 0;
+    else
+        idx += (after)?1:0;
+
+    if(!omnplay_playlist_insert_check(app, idx, &t))
+        return;
+
+    /* clear item */
+    if(app->clipboard.count)
+    {
+        for(i = 0; i < app->clipboard.count; i++)
+        {
+            app->clipboard.item[i].type = t;
+            app->clipboard.item[i].error = 0;
+        };
+        omnplay_playlist_insert_items(app, idx, app->clipboard.item, app->clipboard.count);
+    };
+};
+
 static gboolean on_playlist_grid_key(GtkWidget *widget, GdkEventKey *event, gpointer data)
 {
     omnplay_instance_t* app = (omnplay_instance_t*)data;
@@ -1004,7 +1046,7 @@ static gboolean on_playlist_grid_key(GtkWidget *widget, GdkEventKey *event, gpoi
         case GDK_c:
             if(event->state & GDK_CONTROL_MASK)
             {
-                fprintf(stderr, "CTRL+c\n");
+                omnplay_playlist_item_copy(app);
                 return TRUE;
             };
             break;
@@ -1012,7 +1054,7 @@ static gboolean on_playlist_grid_key(GtkWidget *widget, GdkEventKey *event, gpoi
         case GDK_v:
             if(event->state & GDK_CONTROL_MASK)
             {
-                fprintf(stderr, "CTRL+v\n");
+                omnplay_playlist_item_paste(app, 0);
                 return TRUE;
             };
             break;
@@ -1020,7 +1062,8 @@ static gboolean on_playlist_grid_key(GtkWidget *widget, GdkEventKey *event, gpoi
         case GDK_x:
             if(event->state & GDK_CONTROL_MASK)
             {
-                fprintf(stderr, "CTRL+x\n");
+                omnplay_playlist_item_copy(app);
+                omnplay_playlist_item_del(app);
                 return TRUE;
             };
             break;
@@ -1070,7 +1113,21 @@ static gboolean on_library_grid_key(GtkWidget *widget, GdkEventKey *event, gpoin
         case GDK_c:
             if(event->state & GDK_CONTROL_MASK)
             {
-                fprintf(stderr, "CTRL+c\n");
+                int count;
+                playlist_item_t* items;
+
+                items = omnplay_library_get_selected(app, &count);
+
+                if(items)
+                {
+                    int i;
+
+                    for(i = 0; i < count; i++)
+                        app->clipboard.item[i] = items[i];
+
+                    app->clipboard.count = count;
+                };
+
                 return TRUE;
             };
             break;
