@@ -402,7 +402,7 @@ static void omnplay_playlist_block(omnplay_instance_t* app, control_buttons_t bu
         };
 
         /* update border items */
-        if(!start && !(app->playlist.item[start - 1].type & OMNPLAY_PLAYLIST_BLOCK_END))
+        if(start && !(app->playlist.item[start - 1].type & OMNPLAY_PLAYLIST_BLOCK_END))
         {
             app->playlist.item[start - 1].type = (playlist_item_type_t)(OMNPLAY_PLAYLIST_BLOCK_END
                 | app->playlist.item[start - 1].type);
