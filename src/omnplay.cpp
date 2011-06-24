@@ -232,7 +232,7 @@ static void* omnplay_thread_proc(void* data)
     pthread_mutex_unlock(&player->app->players.lock);
     if(r)
     {
-        fprintf(stderr, "ERROR: OmPlrOpen(%s, %s) failed with 0x%.8X\n",
+        g_warning("ERROR: OmPlrOpen(%s, %s) failed with 0x%.8X\n",
             player->host, player->name, r);
 
         return (void*)r;
@@ -252,7 +252,7 @@ static void* omnplay_thread_proc(void* data)
 
         if(r)
         {
-            fprintf(stderr, "ERROR: OmPlrClipSetDirectory(%s) failed with 0x%.8X\n",
+            g_warning("ERROR: OmPlrClipSetDirectory(%s) failed with 0x%.8X\n",
                 player->app->players.path, r);
 
             pthread_mutex_lock(&player->app->players.lock);
@@ -280,7 +280,7 @@ static void* omnplay_thread_proc(void* data)
         pthread_mutex_unlock(&player->app->players.lock);
 
         if(r)
-            fprintf(stderr, "ERROR: OmPlrGetPlayerStatus failed with 0x%.8X\n", r);
+            g_warning("ERROR: OmPlrGetPlayerStatus failed with 0x%.8X\n", r);
         else
             if(memcmp(&st_curr, &st_prev, sizeof(OmPlrStatus)))
                 omnplay_update_status(player, &st_prev , &st_curr);
@@ -422,7 +422,7 @@ static void omnplay_playlist_block(omnplay_instance_t* app, control_buttons_t bu
         };
     }
     else
-        fprintf(stderr, "omnplay_playlist_block: range [%d %d] do OVERLAP player\n",
+        g_warning("omnplay_playlist_block: range [%d %d] do OVERLAP player\n",
             start, stop);
 
     pthread_mutex_unlock(&app->players.lock);
@@ -453,7 +453,7 @@ static int get_playlist_block(omnplay_instance_t* app, int idx, int* start_ptr, 
         if(app->playlist.item[stop].type & OMNPLAY_PLAYLIST_BLOCK_END)
             break;
 
-    fprintf(stderr, "get_playlist_block: range %d -> %d\n", start, stop);
+    g_warning("get_playlist_block: range %d -> %d\n", start, stop);
 
     /* check block range */
     if(start >= 0 && stop < app->playlist.count)
@@ -646,7 +646,7 @@ static void omnplay_playlist_item_add(omnplay_instance_t* app, int after)
     if(!omnplay_playlist_insert_check(app, idx, &t))
         return;
 
-    fprintf(stderr, "allowed insert into idx=%d\n", idx);
+    g_warning("allowed insert into idx=%d\n", idx);
 
     /* clear item */
     memset(&item, 0, sizeof(playlist_item_t));
@@ -699,7 +699,7 @@ static void omnplay_ctl(omnplay_instance_t* app, control_buttons_t button)
         return;
     };
 
-    fprintf(stderr, "cue: selected item is %d\n", idx);
+    g_warning("cue: selected item is %d\n", idx);
 
     if(get_playlist_block(app, idx, &start, &stop) < 0)
     {
@@ -707,7 +707,7 @@ static void omnplay_ctl(omnplay_instance_t* app, control_buttons_t button)
         return;
     };
 
-    fprintf(stderr, "cue: range %d -> %d\n", start, stop);
+    g_warning("cue: range %d -> %d\n", start, stop);
 
     player = get_player_at_pos(app, start);
 
@@ -747,7 +747,7 @@ static void omnplay_ctl(omnplay_instance_t* app, control_buttons_t button)
             {
                 unsigned int l;
 
-                fprintf(stderr, "OmPlrClipGetInfo(%s): firstFrame=%d, lastFrame=%d\n",
+                g_warning("OmPlrClipGetInfo(%s): firstFrame=%d, lastFrame=%d\n",
                     app->playlist.item[i].id, clip.firstFrame, clip.lastFrame);
 
                 /* should we fix playlist clip timings */
@@ -756,7 +756,7 @@ static void omnplay_ctl(omnplay_instance_t* app, control_buttons_t button)
                     app->playlist.item[i].in + app->playlist.item[i].dur <= clip.lastFrame) ||
                     !app->playlist.item[i].dur)
                 {
-                    fprintf(stderr, "cue: item [%s] will be updated [%d;%d]->[%d;%d]\n",
+                    g_warning("cue: item [%s] will be updated [%d;%d]->[%d;%d]\n",
                         app->playlist.item[i].id,
                         app->playlist.item[i].in, app->playlist.item[i].dur,
                         clip.firstFrame, clip.lastFrame - clip.firstFrame);
@@ -775,7 +775,7 @@ static void omnplay_ctl(omnplay_instance_t* app, control_buttons_t button)
 
             if(r)
             {
-                fprintf(stderr, "cue: failed with %d, %s\n", r, OmPlrGetErrorString((OmPlrError)r));
+                g_warning("cue: failed with %d, %s\n", r, OmPlrGetErrorString((OmPlrError)r));
                 app->playlist.item[i].omn_idx = -1;
                 app->playlist.item[i].omn_offset = -1;
                 app->playlist.item[i].error |= PLAYLIST_ITEM_ERROR_CUE;
@@ -1145,7 +1145,7 @@ static gboolean on_library_grid_key(GtkWidget *widget, GdkEventKey *event, gpoin
         case GDK_v:
             if(event->state & GDK_CONTROL_MASK)
             {
-                fprintf(stderr, "CTRL+v\n");
+                g_warning("CTRL+v\n");
                 return TRUE;
             };
             break;
@@ -1153,7 +1153,7 @@ static gboolean on_library_grid_key(GtkWidget *widget, GdkEventKey *event, gpoin
         case GDK_x:
             if(event->state & GDK_CONTROL_MASK)
             {
-                fprintf(stderr, "CTRL+x\n");
+                g_warning("CTRL+x\n");
                 return TRUE;
             };
             break;

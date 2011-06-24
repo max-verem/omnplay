@@ -416,7 +416,7 @@ void omnplay_library_search(omnplay_instance_t* app, int next)
 
         if(i < app->library.count)
         {
-            fprintf(stderr, "found at pos=%d\n", i);
+            g_warning("found at pos=%d\n", i);
 
             /* select */
             path = gtk_tree_path_new_from_indices(i, -1);

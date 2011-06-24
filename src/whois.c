@@ -144,12 +144,12 @@ int omnplay_whois_list(omnplay_instance_t* app, playlist_item_t *items, int* pco
     r = save_list(items, *pcount, filenames[0]);
 
     if(r)
-        fprintf(stderr, "Failed to save list to [%s]\n", filenames[0]);
+        g_warning("Failed to save list to [%s]\n", filenames[0]);
     else
     {
         r = post_file(app->library.whois, filenames[0], filenames[1], curl_error_msg);
         if(r)
-            fprintf(stderr, "Failed to whois: {%s}\n", curl_error_msg);
+            g_warning("Failed to whois: {%s}\n", curl_error_msg);
         else
             r = omnplay_library_load_file(items, pcount, filenames[1]);
     };
