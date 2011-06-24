@@ -225,25 +225,38 @@ void omnplay_library_save(omnplay_instance_t* app)
 static void omnplay_get_content_cb(omnplay_instance_t* app, playlist_item_t* item, void* data)
 {
     gdk_threads_enter();
-    gtk_label_set_text(GTK_LABEL(app->library.refresh_ui[1]), item->id);
+    gtk_label_set_text(GTK_LABEL(data), item->id);
     gdk_flush();
     gdk_threads_leave();
 };
 
 static void* omnplay_library_refresh_proc(void* data)
 {
+    GtkWidget *refresh_ui[2];
     omnplay_instance_t* app = (omnplay_instance_t*)data;
     int count, i;
     playlist_item_t* items;
 
+#ifndef _WIN32
+    gdk_threads_enter();
+#endif /* _WIN32 */
+    /* create UI for monitoring update */
+    ui_library_refresh(app, &refresh_ui[0], &refresh_ui[1]);
+    gtk_widget_show_all(refresh_ui[0]);
+    gtk_window_present(GTK_WINDOW(refresh_ui[0]));
+#ifndef _WIN32
+    gdk_flush();
+    gdk_threads_leave();
+#endif /* _WIN32 */
+
     items = (playlist_item_t*)malloc(sizeof(playlist_item_t) * MAX_LIBRARY_ITEMS);
 
-    count = omnplay_get_content(app, items, MAX_LIBRARY_ITEMS, omnplay_get_content_cb, NULL);
+    count = omnplay_get_content(app, items, MAX_LIBRARY_ITEMS, omnplay_get_content_cb, refresh_ui[1]);
 
     if(count > 0)
     {
         gdk_threads_enter();
-        gtk_label_set_text(GTK_LABEL(app->library.refresh_ui[1]), "Quering whois...");
+        gtk_label_set_text(GTK_LABEL(refresh_ui[1]), "Quering whois...");
         gdk_flush();
         gdk_threads_leave();
 
@@ -271,24 +284,29 @@ static void* omnplay_library_refresh_proc(void* data)
 
     gdk_threads_enter();
     omnplay_playlist_normalize(app);
-    gtk_widget_destroy(app->library.refresh_ui[0]);
     gdk_flush();
     gdk_threads_leave();
+
+#ifndef _WIN32
+    gdk_threads_enter();
+#endif /* _WIN32 */
+    gtk_widget_destroy(refresh_ui[0]);
+#ifndef _WIN32
+    gdk_flush();
+    gdk_threads_leave();
+#endif /* _WIN32 */
 
     return NULL;
 };
 
 void omnplay_library_refresh(omnplay_instance_t* app)
 {
-    if(app->library.refresh_ui[0])
+    if(app->library.refresh_thread_r)
         pthread_join(app->library.refresh_thread, NULL);
-
-    /* create UI for monitoring update */
-    ui_library_refresh(app, &app->library.refresh_ui[0], &app->library.refresh_ui[1]);
+    app->library.refresh_thread_r = 1;
 
     pthread_create(&app->library.refresh_thread, NULL,
         omnplay_library_refresh_proc, app);
-
 };
 
 void omnplay_library_draw(omnplay_instance_t* app)

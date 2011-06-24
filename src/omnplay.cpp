@@ -1236,6 +1236,9 @@ void omnplay_init(omnplay_instance_t* app)
     omnplay_library_load(app);
 
     pthread_mutexattr_destroy(&attr);
+
+    /* create UI for monitoring update */
+//    ui_library_refresh(app, &app->library.refresh_ui[0], &app->library.refresh_ui[1]);
 };
 
 void omnplay_release(omnplay_instance_t* app)

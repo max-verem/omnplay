@@ -719,17 +719,15 @@ void ui_library_refresh(omnplay_instance_t* app, GtkWidget **p_win, GtkWidget **
     gtk_window_set_default_size(GTK_WINDOW(win), 250, 100);
     gtk_window_set_modal(GTK_WINDOW(win), TRUE);
     gtk_window_set_transient_for(GTK_WINDOW(win), GTK_WINDOW(app->window));
+//    gtk_window_set_deletable(GTK_WINDOW(win), FALSE);
+//    gtk_window_set_resizable(GTK_WINDOW(win), FALSE);
 
     box = gtk_vbox_new(FALSE, 0);
     gtk_widget_show(box);
     gtk_container_add(GTK_CONTAINER(win), box);
 
     label = create_label(NULL, "Requsting status...", NULL, 0),
-    gtk_widget_show(label);
     gtk_box_pack_start (GTK_BOX(box), label, TRUE, TRUE, 0);
-
-    gtk_window_present(GTK_WINDOW(win));
-    gtk_widget_show(win);
 
     *p_win = win;
     *p_label = label;
