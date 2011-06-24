@@ -20,6 +20,8 @@
 #ifndef OMNPLAY_H
 #define OMNPLAY_H
 
+#include <pthread.h>
+
 #ifdef __cplusplus
 extern "C"
 {

@@ -19,4 +19,4 @@ omnplay_SOURCES = \
 	timecode.c timecode.h \
 	omnplay.cpp omnplay.h
 
-omnplay_LDADD = @GTHREAD_LIBS@ @GTK_LIBS@ @OM_LIBS@ @CURL_LIBS@
+omnplay_LDADD = @GTHREAD_LIBS@ @GTK_LIBS@ @OM_LIBS@ @CURL_LIBS@ -lpthread

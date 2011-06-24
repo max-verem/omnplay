@@ -34,6 +34,31 @@
 #include "omnplay.h"
 #include "support.h"
 
+#ifdef _WIN32
+#include <ctype.h>
+#include <windows.h>
+
+char *strcasestr(char *haystack, char *needle)
+{
+    char *p, *startn = 0, *np = 0;
+
+    for (p = haystack; *p; p++) {
+        if (np) {
+            if (toupper(*p) == toupper(*np)) {
+                if (!*++np)
+                    return startn;
+            } else
+                np = 0;
+        } else if (toupper(*p) == toupper(*needle)) {
+            np = needle + 1;
+            startn = p;
+        }
+    }
+
+    return 0;
+};
+#endif /* _WIN32 */
+
 int main(int argc, char **argv)
 {
     char path[ 512 ], *buf;
@@ -50,16 +75,23 @@ int main(int argc, char **argv)
     gtk_set_locale();
     gtk_init(&argc, &argv);
 
+    memset(path, 0, sizeof(path));
 #ifdef _WIN32
+    GetModuleFileName(NULL, path, sizeof(path));
+//    g_warning("GetModuleFileName [%s]\n", path);
+    if((buf = strstr(path, "\\bin\\omnplay.exe")))
+    {
+        buf[0] = 0;
+        strcat(path, "\\share\\omnplay\\pixmaps");
+    }
 #else
     // Linux hack to determine path of the executable
-    memset(path, 0, sizeof(path));
     readlink( "/proc/self/exe", path, sizeof(path));
     g_warning ("path=(%s)\n", path);
     if((buf = strstr(path, "/bin/omnplay")))
     {
         buf[0] = 0;
-        strcat(path, "/share/rugen/pixmaps");
+        strcat(path, "/share/omnplay/pixmaps");
     }
     else if((buf = strstr(path, "/src/omnplay")))
     {
@@ -68,11 +100,10 @@ int main(int argc, char **argv)
     }
     else
         snprintf(path, sizeof(path), "%s/%s/pixmaps", PACKAGE_DATA_DIR, PACKAGE);
+#endif /* _WIN32 */
 
     add_pixmap_directory( path );
     g_warning ("add_pixmap_directory(%s)\n", path);
-
-#endif /* _WIN32 */
 
     app = omnplay_create(argc, argv);
 

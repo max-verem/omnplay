@@ -2,7 +2,9 @@
     ./autogen
 
 2. configure for win32
-    ./configure --host=i686-pc-mingw32
+    ./configure --host=i686-pc-mingw32 \
+        --with-ommedia=/usr/local/omneon/ommedia-win32-6.3.0.1.20110519 \
+        --with-omplrlib=/usr/local/omneon/omplrlib-win32-6.3.0.1.20110519
 
 3. preparation of library files cross-compiling
 

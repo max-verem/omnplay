@@ -224,6 +224,8 @@ static void* omnplay_thread_proc(void* data)
     OmPlrStatus st_curr, st_prev;
     omnplay_player_t* player = (omnplay_player_t*)data;
 
+    g_warning("omnplay_thread_proc\n");
+
     /* connect */
     pthread_mutex_lock(&player->app->players.lock);
     r = OmPlrOpen(player->host, player->name, (OmPlrHandle*)&player->handle);
@@ -265,7 +267,11 @@ static void* omnplay_thread_proc(void* data)
     for(r = 0 ; !player->app->f_exit && !r;)
     {
         /* sleep */
+#ifdef _WIN32
+        Sleep(100);
+#else
         usleep(100000);
+#endif
 
         /* get status */
         pthread_mutex_lock(&player->app->players.lock);
@@ -1183,6 +1189,7 @@ void omnplay_init(omnplay_instance_t* app)
     int i;
     pthread_mutexattr_t attr;
 
+    pthread_mutexattr_init(&attr);
     pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
 
     gtk_signal_connect( GTK_OBJECT( app->window ), "delete-event",
@@ -1213,6 +1220,7 @@ void omnplay_init(omnplay_instance_t* app)
         pthread_create(&app->players.item[i].thread, NULL,
             omnplay_thread_proc, &app->players.item[i]);
 
+
     /* create lock */
     pthread_mutex_init(&app->playlist.lock, &attr);
 
@@ -1226,6 +1234,8 @@ void omnplay_init(omnplay_instance_t* app)
 
     /* load library */
     omnplay_library_load(app);
+
+    pthread_mutexattr_destroy(&attr);
 };
 
 void omnplay_release(omnplay_instance_t* app)
