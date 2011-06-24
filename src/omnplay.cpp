@@ -1164,6 +1164,8 @@ static gboolean on_library_grid_key(GtkWidget *widget, GdkEventKey *event, gpoin
 
 static gboolean on_library_grid_button(GtkWidget *widget, GdkEventButton *event, gpointer data)
 {
+//    g_warning("on_library_grid_button: event->button=%d, event->type=%d", event->button, event->type);
+
     if(event->button==1 && event->type==GDK_2BUTTON_PRESS)
     {
         omnplay_library_add((omnplay_instance_t* )data, 0);
@@ -1175,6 +1177,8 @@ static gboolean on_library_grid_button(GtkWidget *widget, GdkEventButton *event,
 
 static gboolean on_playlist_grid_button(GtkWidget *widget, GdkEventButton *event, gpointer data)
 {
+//    g_warning("on_playlist_grid_button");
+
     if(event->button==1 && event->type==GDK_2BUTTON_PRESS)
     {
         omnplay_ctl((omnplay_instance_t* )data, BUTTON_PLAYER_CUE);
@@ -1199,10 +1203,12 @@ void omnplay_init(omnplay_instance_t* app)
         GTK_SIGNAL_FUNC(on_main_window_destroy), app);
 
     gtk_widget_add_events(app->playlist_grid, GDK_BUTTON_PRESS_MASK);
+    gtk_widget_add_events(app->playlist_grid, GDK_KEY_PRESS_MASK);
     gtk_signal_connect(GTK_OBJECT(app->playlist_grid), "key-press-event",
         GTK_SIGNAL_FUNC(on_playlist_grid_key), app);
 
     gtk_widget_add_events(app->library_grid, GDK_BUTTON_PRESS_MASK);
+    gtk_widget_add_events(app->library_grid, GDK_KEY_PRESS_MASK);
     gtk_signal_connect(GTK_OBJECT(app->library_grid), "key-press-event",
         GTK_SIGNAL_FUNC(on_library_grid_key), app);
 
@@ -1236,9 +1242,6 @@ void omnplay_init(omnplay_instance_t* app)
     omnplay_library_load(app);
 
     pthread_mutexattr_destroy(&attr);
-
-    /* create UI for monitoring update */
-//    ui_library_refresh(app, &app->library.refresh_ui[0], &app->library.refresh_ui[1]);
 };
 
 void omnplay_release(omnplay_instance_t* app)
