@@ -284,11 +284,14 @@ static GtkWidget* create_channel_status(GtkWidget* top, omnplay_instance_t* app,
     GtkWidget* vbox;
     GtkWidget* hbox;
     GtkWidget* frame;
+    char name[PATH_MAX];
     omnplay_player_t* player;
 
     player = &app->players.item[idx];
 
-    frame = gtk_frame_new(player->name);
+    snprintf(name, sizeof(name), "%c [%s]", idx + 'A', player->name);
+
+    frame = gtk_frame_new(name);
     gtk_widget_show(frame);
 
     vbox = gtk_vbox_new(FALSE, 0);
