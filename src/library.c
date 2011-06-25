@@ -224,47 +224,34 @@ void omnplay_library_save(omnplay_instance_t* app)
 
 static void omnplay_get_content_cb(omnplay_instance_t* app, playlist_item_t* item, void* data)
 {
-    gdk_threads_enter();
-    gtk_label_set_text(GTK_LABEL(data), item->id);
-    gdk_flush();
-    gdk_threads_leave();
+    omnplay_set_status(app, item->id);
 };
 
 static void* omnplay_library_refresh_proc(void* data)
 {
-    GtkWidget *refresh_ui[2];
     omnplay_instance_t* app = (omnplay_instance_t*)data;
     int count, i;
     playlist_item_t* items;
 
     gdk_threads_enter();
-
-    /* create UI for monitoring update */
-    ui_library_refresh(app, &refresh_ui[0], &refresh_ui[1]);
-    gtk_widget_show_all(refresh_ui[0]);
-    gtk_window_present(GTK_WINDOW(refresh_ui[0]));
-
+    gtk_widget_set_sensitive(app->window, FALSE);
     gdk_flush();
     gdk_threads_leave();
 
+    omnplay_set_status(app, "Updating library...");
+
     items = (playlist_item_t*)malloc(sizeof(playlist_item_t) * MAX_LIBRARY_ITEMS);
 
-    count = omnplay_get_content(app, items, MAX_LIBRARY_ITEMS, omnplay_get_content_cb, refresh_ui[1]);
+    count = omnplay_get_content(app, items, MAX_LIBRARY_ITEMS, omnplay_get_content_cb, NULL);
 
     if(count > 0)
     {
-        gdk_threads_enter();
-        gtk_label_set_text(GTK_LABEL(refresh_ui[1]), "Quering whois...");
-        gdk_flush();
-        gdk_threads_leave();
+        omnplay_set_status(app, "Quering whois...");
 
         if(app->library.whois[0])
             omnplay_whois_list(app, items, &count);
 
-        gdk_threads_enter();
-        gtk_label_set_text(GTK_LABEL(refresh_ui[1]), "Setting library...");
-        gdk_flush();
-        gdk_threads_leave();
+        omnplay_set_status(app, "Setting library...");
 
         pthread_mutex_lock(&app->library.lock);
 
@@ -283,6 +270,8 @@ static void* omnplay_library_refresh_proc(void* data)
         gdk_threads_leave();
     };
 
+    omnplay_set_status(app, "Normalizing playlist...");
+
     free(items);
 
     gdk_threads_enter();
@@ -290,10 +279,13 @@ static void* omnplay_library_refresh_proc(void* data)
     gdk_flush();
     gdk_threads_leave();
 
+    omnplay_set_status(app, "");
+
     gdk_threads_enter();
-    gtk_widget_destroy(refresh_ui[0]);
+    gtk_widget_set_sensitive(app->window, TRUE);
     gdk_flush();
     gdk_threads_leave();
+
 
     return NULL;
 };

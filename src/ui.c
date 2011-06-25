@@ -712,26 +712,3 @@ int ui_playlist_item_dialog(omnplay_instance_t* app, playlist_item_t* item)
 
     return r;
 };
-
-void ui_library_refresh(omnplay_instance_t* app, GtkWidget **p_win, GtkWidget **p_label)
-{
-    GtkWidget *win, *box, *label;
-
-    win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-    gtk_window_set_title(GTK_WINDOW(win), _("Library refreshing..."));
-    gtk_window_set_default_size(GTK_WINDOW(win), 250, 100);
-    gtk_window_set_modal(GTK_WINDOW(win), TRUE);
-    gtk_window_set_transient_for(GTK_WINDOW(win), GTK_WINDOW(app->window));
-//    gtk_window_set_deletable(GTK_WINDOW(win), FALSE);
-//    gtk_window_set_resizable(GTK_WINDOW(win), FALSE);
-
-    box = gtk_vbox_new(FALSE, 0);
-    gtk_widget_show(box);
-    gtk_container_add(GTK_CONTAINER(win), box);
-
-    label = create_label(NULL, "Requsting status...", NULL, 0),
-    gtk_box_pack_start (GTK_BOX(box), label, TRUE, TRUE, 0);
-
-    *p_win = win;
-    *p_label = label;
-};
