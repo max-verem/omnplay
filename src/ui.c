@@ -560,6 +560,7 @@ static GtkWidget* pane_top(GtkWidget* top, omnplay_instance_t* app)
 GtkWidget* ui_omnplay (omnplay_instance_t* app)
 {
     GtkWidget *wnd;
+    GtkWidget* vbox;
 
     wnd = gtk_window_new (GTK_WINDOW_TOPLEVEL);
     GLADE_HOOKUP_OBJECT_NO_REF (wnd, wnd, "omnplay_window");
@@ -567,8 +568,17 @@ GtkWidget* ui_omnplay (omnplay_instance_t* app)
     gtk_window_set_title (GTK_WINDOW (wnd), _("Omneon Player"));
     gtk_window_set_default_size (GTK_WINDOW (wnd), 1024, 768);
 
-    gtk_container_add (GTK_CONTAINER (wnd),
-        pane_top(wnd, app));
+    vbox = gtk_vbox_new(FALSE, 0);
+    gtk_widget_show(vbox);
+
+    gtk_container_add(GTK_CONTAINER(wnd), vbox);
+
+    gtk_box_pack_start (GTK_BOX (vbox),
+        pane_top(wnd, app),
+        TRUE, TRUE, 0);
+    gtk_box_pack_start (GTK_BOX (vbox),
+        app->status_label = create_label(wnd, "omnplay started", NULL, GTK_JUSTIFY_LEFT),
+        FALSE, FALSE, 0);
 
     app->playlist.block_icons[OMNPLAY_PLAYLIST_ITEM_BLOCK_BEGIN] =
         create_pixbuf("block_type_block_start_16x16.png");

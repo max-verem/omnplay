@@ -130,6 +130,7 @@ typedef struct omnplay_instance
     GtkWidget *playlist_grid;
     GtkWidget *library_grid;
     GtkWidget *buttons[BUTTON_LAST + 1];
+    GtkWidget *status_label;
     struct
     {
         omnplay_player_t item[MAX_PLAYERS];

@@ -1302,7 +1302,7 @@ void omnplay_playlist_normalize(omnplay_instance_t* app)
 void omnplay_set_status(omnplay_instance_t* app, char* str)
 {
     gdk_threads_enter();
-//    gtk_label_set_text(GTK_LABEL(data), str);
+    gtk_label_set_text(GTK_LABEL(app->status_label), str);
     gdk_flush();
     gdk_threads_leave();
 };
