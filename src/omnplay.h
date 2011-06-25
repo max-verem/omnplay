@@ -117,7 +117,7 @@ typedef struct omnplay_player
     char name[PATH_MAX];
     char host[PATH_MAX];
     void* handle;
-    pthread_t thread;
+    GThread* thread;
     GtkWidget *label_status, *label_state, *label_tc_cur, *label_tc_rem, *label_clip;
     struct omnplay_instance *app;
     int playlist_start;

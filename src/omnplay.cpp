@@ -1241,23 +1241,18 @@ void omnplay_init(omnplay_instance_t* app)
 
     /* create lock */
     pthread_mutex_init(&app->players.lock, &attr);
+    pthread_mutex_init(&app->playlist.lock, &attr);
+    pthread_mutex_init(&app->library.lock, &attr);
 
     /* create a omneon status thread */
     for(i = 0; i < app->players.count; i++)
-        pthread_create(&app->players.item[i].thread, NULL,
-            omnplay_thread_proc, &app->players.item[i]);
-
-
-    /* create lock */
-    pthread_mutex_init(&app->playlist.lock, &attr);
+        app->players.item[i].thread = g_thread_create(
+            omnplay_thread_proc, &app->players.item[i], TRUE, NULL);
 
     /* attach buttons click */
     for(i = 1; i < BUTTON_LAST; i++)
         gtk_signal_connect(GTK_OBJECT(app->buttons[i]), "clicked",
             GTK_SIGNAL_FUNC( on_button_click), app );
-
-    /* create lock */
-    pthread_mutex_init(&app->library.lock, &attr);
 
     /* load library */
     omnplay_library_load(app);
@@ -1268,13 +1263,12 @@ void omnplay_init(omnplay_instance_t* app)
 void omnplay_release(omnplay_instance_t* app)
 {
     int i;
-    void* r;
 
     app->f_exit = 1;
 
     for(i = 0; i < app->players.count; i++)
         /* create a omneon status thread */
-        pthread_join(app->players.item[i].thread, &r);
+        g_thread_join(app->players.item[i].thread);
 
     /* destroy lock */
     pthread_mutex_destroy(&app->players.lock);
