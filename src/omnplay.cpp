@@ -124,6 +124,9 @@ void omnplay_destroy(omnplay_instance_t* app)
 
 static int find_index_of_playlist_item(omnplay_instance_t* app, int start, int idx)
 {
+    if(start < 0 || start >= app->playlist.count)
+        return -1;
+
     while(1)
     {
         if(app->playlist.item[start].omn_idx == idx)
@@ -225,6 +228,9 @@ static void* omnplay_thread_proc(void* data)
     omnplay_player_t* player = (omnplay_player_t*)data;
 
     g_warning("omnplay_thread_proc\n");
+
+    memset(&st_curr, 0, sizeof(OmPlrStatus));
+    memset(&st_prev, 0, sizeof(OmPlrStatus));
 
     /* connect */
     pthread_mutex_lock(&player->app->players.lock);
