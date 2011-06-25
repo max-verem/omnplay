@@ -237,17 +237,15 @@ static void* omnplay_library_refresh_proc(void* data)
     int count, i;
     playlist_item_t* items;
 
-#ifndef _WIN32
     gdk_threads_enter();
-#endif /* _WIN32 */
+
     /* create UI for monitoring update */
     ui_library_refresh(app, &refresh_ui[0], &refresh_ui[1]);
     gtk_widget_show_all(refresh_ui[0]);
     gtk_window_present(GTK_WINDOW(refresh_ui[0]));
-#ifndef _WIN32
+
     gdk_flush();
     gdk_threads_leave();
-#endif /* _WIN32 */
 
     items = (playlist_item_t*)malloc(sizeof(playlist_item_t) * MAX_LIBRARY_ITEMS);
 
@@ -262,6 +260,11 @@ static void* omnplay_library_refresh_proc(void* data)
 
         if(app->library.whois[0])
             omnplay_whois_list(app, items, &count);
+
+        gdk_threads_enter();
+        gtk_label_set_text(GTK_LABEL(refresh_ui[1]), "Setting library...");
+        gdk_flush();
+        gdk_threads_leave();
 
         pthread_mutex_lock(&app->library.lock);
 
@@ -287,26 +290,21 @@ static void* omnplay_library_refresh_proc(void* data)
     gdk_flush();
     gdk_threads_leave();
 
-#ifndef _WIN32
     gdk_threads_enter();
-#endif /* _WIN32 */
     gtk_widget_destroy(refresh_ui[0]);
-#ifndef _WIN32
     gdk_flush();
     gdk_threads_leave();
-#endif /* _WIN32 */
 
     return NULL;
 };
 
 void omnplay_library_refresh(omnplay_instance_t* app)
 {
-    if(app->library.refresh_thread_r)
-        pthread_join(app->library.refresh_thread, NULL);
-    app->library.refresh_thread_r = 1;
+    if(app->library.refresh_thread)
+        g_thread_join(app->library.refresh_thread);
 
-    pthread_create(&app->library.refresh_thread, NULL,
-        omnplay_library_refresh_proc, app);
+    app->library.refresh_thread = g_thread_create(
+        omnplay_library_refresh_proc, app, TRUE, NULL);
 };
 
 void omnplay_library_draw(omnplay_instance_t* app)

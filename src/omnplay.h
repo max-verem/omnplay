@@ -155,8 +155,7 @@ typedef struct omnplay_instance
         char filename[PATH_MAX];
         char whois[PATH_MAX];
         pthread_mutex_t lock;
-        pthread_t refresh_thread;
-        int refresh_thread_r;
+        GThread* refresh_thread;
         GtkWidget *search;
     } library;
     struct
