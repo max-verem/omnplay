@@ -52,7 +52,7 @@ static const button_desc_t buttons[] =
 {
     {
         BUTTON_PLAYLIST_ITEM_ADD,
-        "Add item to playlist",
+        "Add item to playlist (Insert)",
         NULL,
         NULL,
         "button_playlist_add",
@@ -60,7 +60,7 @@ static const button_desc_t buttons[] =
     },
     {
         BUTTON_PLAYLIST_ITEM_EDIT,
-        "Edit item in playlist",
+        "Edit item in playlist (E)",
         NULL,
         NULL,
         "button_playlist_edit",
@@ -68,7 +68,7 @@ static const button_desc_t buttons[] =
     },
     {
         BUTTON_PLAYLIST_ITEM_DEL,
-        "Delete item from playlist",
+        "Delete item from playlist (Del)",
         NULL,
         NULL,
         "button_playlist_del",
@@ -76,7 +76,7 @@ static const button_desc_t buttons[] =
     },
     {
         BUTTON_PLAYLIST_ITEM_UP,
-        "Move item ebove",
+        "Move item ebove (Ctrl-UP)",
         NULL,
         NULL,
         "button_playlist_up",
@@ -84,7 +84,7 @@ static const button_desc_t buttons[] =
     },
     {
         BUTTON_PLAYLIST_ITEM_DOWN,
-        "Move item below",
+        "Move item below (Ctrl-DOWN)",
         NULL,
         NULL,
         "button_playlist_down",
@@ -92,7 +92,7 @@ static const button_desc_t buttons[] =
     },
     {
         BUTTON_PLAYLIST_LOAD,
-        "Load playlist",
+        "Load playlist (Ctrl-O)",
         NULL,
         NULL,
         "button_playlist_load",
@@ -100,7 +100,7 @@ static const button_desc_t buttons[] =
     },
     {
         BUTTON_PLAYLIST_SAVE,
-        "Save playlist",
+        "Save playlist (Ctrl-S)",
         NULL,
         NULL,
         "button_playlist_load",
@@ -124,7 +124,7 @@ static const button_desc_t buttons[] =
     },
     {
         BUTTON_PLAYER_CUE,
-        "Cue block",
+        "Cue block (Enter)",
         NULL,
         NULL,
         "button_playlist_cue",
@@ -132,7 +132,7 @@ static const button_desc_t buttons[] =
     },
     {
         BUTTON_PLAYER_PLAY,
-        "Play",
+        "Play (Space)",
         NULL,
         NULL,
         "button_playlist_play",
@@ -156,7 +156,7 @@ static const button_desc_t buttons[] =
     },
     {
         BUTTON_LIBRARY_ADD,
-        "Add to playlist",
+        "Add to playlist (Enter)",
         NULL,
         NULL,
         "button_library_add",
@@ -164,7 +164,7 @@ static const button_desc_t buttons[] =
     },
     {
         BUTTON_LIBRARY_REFRESH,
-        "Refresh library",
+        "Refresh library (F5)",
         NULL,
         NULL,
         "button_library_refresh",

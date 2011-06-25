@@ -1093,6 +1093,20 @@ static gboolean on_playlist_grid_key(GtkWidget *widget, GdkEventKey *event, gpoi
                 return TRUE;
             };
             break;
+        case GDK_KEY_uparrow:
+            if(event->state & GDK_CONTROL_MASK)
+            {
+                omnplay_playlist_item_swap(app, -1);
+                return TRUE;
+            };
+            break;
+        case GDK_KEY_downarrow:
+            if(event->state & GDK_CONTROL_MASK)
+            {
+                omnplay_playlist_item_swap(app, -1);
+                return TRUE;
+            };
+            break;
         case GDK_KEY_space:
             omnplay_ctl(app, BUTTON_PLAYER_PLAY);
             return TRUE;
@@ -1105,7 +1119,8 @@ static gboolean on_playlist_grid_key(GtkWidget *widget, GdkEventKey *event, gpoi
         case GDK_KEY_Delete:
             omnplay_playlist_item_del(app);
             return TRUE;
-        case GDK_KEY_BackSpace:
+        case GDK_E:
+        case GDK_e:
             omnplay_playlist_item_edit(app);
             return TRUE;
     };
@@ -1157,6 +1172,12 @@ static gboolean on_library_grid_key(GtkWidget *widget, GdkEventKey *event, gpoin
                 return TRUE;
             };
             break;
+        case GDK_KEY_BackSpace:
+            omnplay_library_add(app, 0);
+            return TRUE;
+        case GDK_KEY_F5:
+            omnplay_library_refresh(app);
+            return TRUE;
     };
 
     return FALSE;
