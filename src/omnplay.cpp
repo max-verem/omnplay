@@ -1240,7 +1240,21 @@ static void library_grid_drag_data_get_cb(GtkWidget *widget, GdkDragContext *con
 static void playlist_grid_drag_data_get_cb(GtkWidget *widget, GdkDragContext *context,
     GtkSelectionData *selection_data, guint info, guint time, gpointer userdata)
 {
-    g_warning("playlist_grid_drag_data_get_cb");
+    int *list, i;
+    playlist_item_t* items;
+    omnplay_instance_t* app = (omnplay_instance_t*)userdata;
+
+    list = get_selected_items_playlist(app);
+    if(!list) return;
+
+    items = (playlist_item_t*)malloc(sizeof(playlist_item_t) * list[0]);
+    for(i = 0; i < list[0]; i++)
+        items[i] = app->playlist.item[list[i + 1]];
+    gtk_selection_data_set(selection_data, selection_data->target, 8,
+        (const guchar *)items, sizeof(playlist_item_t) * list[0]);
+
+    free(items);
+    free(list);
 };
 
 static void library_grid_drag_begin_cb(GtkWidget *widget, GdkDragContext *context, gpointer userdata)
