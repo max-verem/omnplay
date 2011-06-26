@@ -1220,7 +1220,21 @@ static gboolean on_playlist_grid_button(GtkWidget *widget, GdkEventButton *event
 static void library_grid_drag_data_get_cb(GtkWidget *widget, GdkDragContext *context,
     GtkSelectionData *selection_data, guint info, guint time, gpointer userdata)
 {
+    int c;
+    playlist_item_t* items;
+    omnplay_instance_t* app = (omnplay_instance_t*)userdata;
+
     g_warning("library_grid_drag_data_get_cb");
+
+    items = omnplay_library_get_selected(app, &c);
+
+    /* clear item */
+    if(items)
+    {
+        gtk_selection_data_set(selection_data, selection_data->target, 8,
+            (const guchar *)items, sizeof(playlist_item_t) * c);
+        free(items);
+    };
 };
 
 static void playlist_grid_drag_data_get_cb(GtkWidget *widget, GdkDragContext *context,
@@ -1244,7 +1258,53 @@ static void playlist_grid_drag_begin_cb(GtkWidget *widget, GdkDragContext *conte
 static void playlist_grid_drag_data_received(GtkWidget *widget, GdkDragContext *context,
     gint x, gint y,  GtkSelectionData *selection_data,  guint info, guint time, gpointer userdata)
 {
+    int c, i, idx;
+    playlist_item_type_t t;
+    playlist_item_t* items;
+    GtkTreePath *path = NULL;
+    omnplay_instance_t* app = (omnplay_instance_t*)userdata;
+
     g_warning("playlist_grid_drag_data_received");
+
+    items = (playlist_item_t*)gtk_selection_data_get_data(selection_data);
+    c = gtk_selection_data_get_length(selection_data);
+
+    if(c % sizeof(playlist_item_t))
+    {
+        g_warning("playlist_grid_drag_data_received: ODD ITEMS");
+    }
+    else
+    {
+        c /= sizeof(playlist_item_t);
+
+        if(gtk_tree_view_get_path_at_pos(GTK_TREE_VIEW(widget), x, y, &path, NULL, NULL, NULL))
+        {
+            idx = gtk_tree_path_get_indices(path)[0];
+            gtk_tree_path_free(path);
+
+            g_warning("playlist_grid_drag_data_received: gtk_tree_path_get_indice[0]=%d", idx);
+
+            /* normalize, FIX ME */
+            idx--; if(idx < 0) idx = 0;
+        }
+        else
+            idx = app->playlist.count;
+
+        g_warning("playlist_grid_drag_data_received: idx=%d", idx);
+
+        if(omnplay_playlist_insert_check(app, idx, &t))
+        {
+            for(i = 0; i < c; i++)
+            {
+                items[i].type = t;
+                items[i].error = 0;
+            };
+            omnplay_playlist_insert_items(app, idx, items, c);
+        };
+    };
+
+    /* Finish the drag */
+    gtk_drag_finish(context, TRUE, FALSE, time);
 };
 
 
@@ -1299,7 +1359,7 @@ void omnplay_init(omnplay_instance_t* app)
     pthread_mutexattr_destroy(&attr);
 
     /* setup drag n drop source/target */
-    static GtkTargetEntry drag_targets[] = { { (char*) "STRING", 0, 1978 } };
+    static GtkTargetEntry drag_targets[] = { { (char*) "application/playlist_item_t", 0, 0 } };
 
     gtk_drag_source_set(app->library_grid, GDK_BUTTON1_MASK,
         drag_targets, 1, (GdkDragAction)(GDK_ACTION_COPY));
