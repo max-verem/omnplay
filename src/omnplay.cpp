@@ -1215,6 +1215,39 @@ static gboolean on_playlist_grid_button(GtkWidget *widget, GdkEventButton *event
     return FALSE;
 };
 
+
+
+static void library_grid_drag_data_get_cb(GtkWidget *widget, GdkDragContext *context,
+    GtkSelectionData *selection_data, guint info, guint time, gpointer userdata)
+{
+    g_warning("library_grid_drag_data_get_cb");
+};
+
+static void playlist_grid_drag_data_get_cb(GtkWidget *widget, GdkDragContext *context,
+    GtkSelectionData *selection_data, guint info, guint time, gpointer userdata)
+{
+    g_warning("playlist_grid_drag_data_get_cb");
+};
+
+static void library_grid_drag_begin_cb(GtkWidget *widget, GdkDragContext *context, gpointer userdata)
+{
+    g_warning("library_grid_drag_begin_cb");
+    gtk_drag_source_set_icon_stock(widget, GTK_STOCK_DND);
+};
+
+static void playlist_grid_drag_begin_cb(GtkWidget *widget, GdkDragContext *context, gpointer userdata)
+{
+    g_warning("playlist_grid_drag_begin_cb");
+    gtk_drag_source_set_icon_stock(widget, GTK_STOCK_DND);
+};
+
+static void playlist_grid_drag_data_received(GtkWidget *widget, GdkDragContext *context,
+    gint x, gint y,  GtkSelectionData *selection_data,  guint info, guint time, gpointer userdata)
+{
+    g_warning("playlist_grid_drag_data_received");
+};
+
+
 void omnplay_init(omnplay_instance_t* app)
 {
     int i;
@@ -1264,6 +1297,24 @@ void omnplay_init(omnplay_instance_t* app)
     omnplay_library_load(app);
 
     pthread_mutexattr_destroy(&attr);
+
+    /* setup drag n drop source/target */
+    static GtkTargetEntry drag_targets[] = { { (char*) "STRING", 0, 1978 } };
+
+    gtk_drag_source_set(app->library_grid, GDK_BUTTON1_MASK,
+        drag_targets, 1, (GdkDragAction)(GDK_ACTION_COPY));
+
+    gtk_drag_source_set(app->playlist_grid, GDK_BUTTON1_MASK,
+        drag_targets, 1, (GdkDragAction)(GDK_ACTION_COPY | GDK_ACTION_MOVE));
+
+    gtk_drag_dest_set(app->playlist_grid, GTK_DEST_DEFAULT_ALL,
+        drag_targets, 1, (GdkDragAction)(GDK_ACTION_COPY | GDK_ACTION_MOVE));
+
+    g_signal_connect (app->library_grid, "drag_data_get", G_CALLBACK(library_grid_drag_data_get_cb), app);
+    g_signal_connect (app->playlist_grid, "drag_data_get", G_CALLBACK(playlist_grid_drag_data_get_cb), app);
+    g_signal_connect (app->library_grid, "drag_begin", G_CALLBACK(library_grid_drag_begin_cb), app);
+    g_signal_connect (app->playlist_grid, "drag_begin", G_CALLBACK(playlist_grid_drag_begin_cb), app);
+    g_signal_connect (app->playlist_grid, "drag_data_received", G_CALLBACK (playlist_grid_drag_data_received), app);
 };
 
 void omnplay_release(omnplay_instance_t* app)
