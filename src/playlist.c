@@ -297,6 +297,7 @@ void omnplay_playlist_draw(omnplay_instance_t* app)
         path = gtk_tree_path_new_from_indices(sels[1], -1);
         gtk_tree_selection_select_path(gtk_tree_view_get_selection(GTK_TREE_VIEW(app->playlist_grid)), path);
         gtk_tree_view_set_cursor(GTK_TREE_VIEW(app->playlist_grid), path, NULL, FALSE);
+        gtk_tree_view_scroll_to_cell(GTK_TREE_VIEW(app->playlist_grid), path, NULL, FALSE, 0, 0);
         gtk_tree_path_free(path);
 
         free(sels);
