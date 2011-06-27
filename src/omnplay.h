@@ -105,6 +105,7 @@ typedef struct playlist_item
     int omn_idx;
     int omn_offset;
     int error;
+    int del;
 } playlist_item_t;
 
 #define MAX_PLAYERS 4

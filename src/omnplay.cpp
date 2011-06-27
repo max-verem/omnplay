@@ -481,10 +481,9 @@ static omnplay_player_t *get_player_at_pos(omnplay_instance_t* app, int pos)
     return NULL;
 };
 
-static void omnplay_playlist_delete_items(omnplay_instance_t* app, int* idxs, int count)
+static void omnplay_playlist_delete_items(omnplay_instance_t* app, int* idxs, int count, int sel)
 {
     int i, j, idx;
-    GtkTreePath* path;
 
     pthread_mutex_lock(&app->playlist.lock);
     pthread_mutex_lock(&app->players.lock);
@@ -528,11 +527,14 @@ static void omnplay_playlist_delete_items(omnplay_instance_t* app, int* idxs, in
     omnplay_playlist_draw(app);
 
     /* select */
-    path = gtk_tree_path_new_from_indices(idxs[0], -1);
-    gtk_tree_selection_select_path(gtk_tree_view_get_selection(GTK_TREE_VIEW(app->playlist_grid)), path);
-    gtk_tree_view_set_cursor(GTK_TREE_VIEW(app->playlist_grid), path, NULL, FALSE);
-    gtk_tree_path_free(path);
-
+    if(sel)
+    {
+        GtkTreePath* path;
+        path = gtk_tree_path_new_from_indices(idxs[0], -1);
+        gtk_tree_selection_select_path(gtk_tree_view_get_selection(GTK_TREE_VIEW(app->playlist_grid)), path);
+        gtk_tree_view_set_cursor(GTK_TREE_VIEW(app->playlist_grid), path, NULL, FALSE);
+        gtk_tree_path_free(path);
+    };
 
     pthread_mutex_unlock(&app->players.lock);
     pthread_mutex_unlock(&app->playlist.lock);
@@ -559,7 +561,7 @@ static void omnplay_playlist_item_del(omnplay_instance_t* app)
     };
 
     if(c)
-        omnplay_playlist_delete_items(app, list2, c);
+        omnplay_playlist_delete_items(app, list2, c, 1);
 
     free(list2);
     free(list);
@@ -1247,9 +1249,17 @@ static void playlist_grid_drag_data_get_cb(GtkWidget *widget, GdkDragContext *co
     list = get_selected_items_playlist(app);
     if(!list) return;
 
+    /* clear delete flag */
+    for(i = 0; i < app->playlist.count; i++)
+        app->playlist.item[i].del = 0;
+
     items = (playlist_item_t*)malloc(sizeof(playlist_item_t) * list[0]);
     for(i = 0; i < list[0]; i++)
+    {
         items[i] = app->playlist.item[list[i + 1]];
+        if(context->action == GDK_ACTION_MOVE)
+            app->playlist.item[list[i + 1]].del = 1;
+    }
     gtk_selection_data_set(selection_data, selection_data->target, 8,
         (const guchar *)items, sizeof(playlist_item_t) * list[0]);
 
@@ -1278,7 +1288,7 @@ static void playlist_grid_drag_data_received(GtkWidget *widget, GdkDragContext *
     GtkTreePath *path = NULL;
     omnplay_instance_t* app = (omnplay_instance_t*)userdata;
 
-    g_warning("playlist_grid_drag_data_received");
+    g_warning("playlist_grid_drag_data_received: context->action=%d", context->action);
 
     items = (playlist_item_t*)gtk_selection_data_get_data(selection_data);
     c = gtk_selection_data_get_length(selection_data);
@@ -1321,6 +1331,29 @@ static void playlist_grid_drag_data_received(GtkWidget *widget, GdkDragContext *
     gtk_drag_finish(context, TRUE, FALSE, time);
 };
 
+static void playlist_grid_drag_data_delete(GtkWidget *widget, GdkDragContext *context, gpointer userdata)
+{
+    int c, i, *list;
+    omnplay_instance_t* app = (omnplay_instance_t*)userdata;
+
+    g_warning("playlist_grid_drag_data_delete");
+
+    list = (int*)malloc(sizeof(int) * MAX_PLAYLIST_ITEMS);
+
+    for(i = 0, c = 0; i < app->playlist.count; i++)
+        if(app->playlist.item[i].del)
+            if(!idx_in_players_range(app, i))
+            {
+                /* save index */
+                list[c++] = i;
+                g_warning("playlist_grid_drag_data_delete: i=%d, c=%d", i, c);
+            };
+
+    if(c)
+        omnplay_playlist_delete_items(app, list, c, 0);
+
+    free(list);
+};
 
 void omnplay_init(omnplay_instance_t* app)
 {
@@ -1389,6 +1422,7 @@ void omnplay_init(omnplay_instance_t* app)
     g_signal_connect (app->library_grid, "drag_begin", G_CALLBACK(library_grid_drag_begin_cb), app);
     g_signal_connect (app->playlist_grid, "drag_begin", G_CALLBACK(playlist_grid_drag_begin_cb), app);
     g_signal_connect (app->playlist_grid, "drag_data_received", G_CALLBACK (playlist_grid_drag_data_received), app);
+    g_signal_connect (app->playlist_grid, "drag_data_delete", G_CALLBACK (playlist_grid_drag_data_delete), app);
 };
 
 void omnplay_release(omnplay_instance_t* app)
