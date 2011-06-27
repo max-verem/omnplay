@@ -132,6 +132,7 @@ static GtkWidget* create_treeview(GtkWidget* top, char* name, const column_desc_
     treeview = gtk_tree_view_new ();
     gtk_widget_show (treeview);
     gtk_tree_view_set_rules_hint(GTK_TREE_VIEW(treeview), TRUE);
+    gtk_tree_view_set_grid_lines(GTK_TREE_VIEW(treeview), GTK_TREE_VIEW_GRID_LINES_BOTH);
 
     selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(treeview));
     gtk_tree_selection_set_mode(selection, GTK_SELECTION_MULTIPLE);
