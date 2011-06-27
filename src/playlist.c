@@ -257,9 +257,12 @@ void omnplay_playlist_save(omnplay_instance_t* app)
 void omnplay_playlist_draw(omnplay_instance_t* app)
 {
     int i;
+    int* sels;
     char tc1[12], tc2[12];
     GtkListStore *list_store;
     GtkTreeIter iter;
+
+    sels = omnplay_selected_idxs_playlist(app);
 
     list_store = GTK_LIST_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(app->playlist_grid)));
     gtk_list_store_clear(list_store);
@@ -285,6 +288,19 @@ void omnplay_playlist_draw(omnplay_instance_t* app)
     }
 
     app->playlist.ver_prev = app->playlist.ver_curr;
+
+    if(sels)
+    {
+        GtkTreePath *path;
+
+        /* select */
+        path = gtk_tree_path_new_from_indices(sels[1], -1);
+        gtk_tree_selection_select_path(gtk_tree_view_get_selection(GTK_TREE_VIEW(app->playlist_grid)), path);
+        gtk_tree_view_set_cursor(GTK_TREE_VIEW(app->playlist_grid), path, NULL, FALSE);
+        gtk_tree_path_free(path);
+
+        free(sels);
+    };
 
     pthread_mutex_unlock(&app->playlist.lock);
 };
