@@ -307,7 +307,7 @@ void get_selected_items_playlist_proc(GtkTreeModel *model, GtkTreePath *path, Gt
     list[0] = list[0] + 1;
 };
 
-static int* get_selected_items_playlist(omnplay_instance_t* app)
+int* omnplay_selected_idxs_playlist(omnplay_instance_t* app)
 {
     int* list = NULL;
     GtkTreeSelection *selection;
@@ -385,7 +385,7 @@ static int idxs_in_players_range(omnplay_instance_t* app, int start, int stop)
 static void omnplay_playlist_block(omnplay_instance_t* app, control_buttons_t button)
 {
     int start, stop, r, i;
-    int* list = get_selected_items_playlist(app);
+    int* list = omnplay_selected_idxs_playlist(app);
 
     if(!list)
         return;
@@ -440,7 +440,7 @@ static void omnplay_playlist_block(omnplay_instance_t* app, control_buttons_t bu
 static int get_first_selected_item_playlist(omnplay_instance_t* app)
 {
     int idx;
-    int* list = get_selected_items_playlist(app);
+    int* list = omnplay_selected_idxs_playlist(app);
     if(!list) return -1;
     idx = list[1];
     free(list);
@@ -545,7 +545,7 @@ static void omnplay_playlist_item_del(omnplay_instance_t* app)
     int i, idx, c;
     int *list, *list2;
 
-    list = get_selected_items_playlist(app);
+    list = omnplay_selected_idxs_playlist(app);
     if(!list) return;
 
     list2 = (int*)malloc(sizeof(int) * list[0]);
@@ -1016,7 +1016,7 @@ static void omnplay_playlist_item_copy(omnplay_instance_t* app)
 {
     int *list, i;
 
-    list = get_selected_items_playlist(app);
+    list = omnplay_selected_idxs_playlist(app);
     if(!list) return;
 
     for(i = 0; i < list[0]; i++)
@@ -1246,7 +1246,7 @@ static void playlist_grid_drag_data_get_cb(GtkWidget *widget, GdkDragContext *co
     playlist_item_t* items;
     omnplay_instance_t* app = (omnplay_instance_t*)userdata;
 
-    list = get_selected_items_playlist(app);
+    list = omnplay_selected_idxs_playlist(app);
     if(!list) return;
 
     /* clear delete flag */

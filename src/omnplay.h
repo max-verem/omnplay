@@ -191,6 +191,7 @@ playlist_item_t* omnplay_library_get_selected(omnplay_instance_t* app, int *coun
 void omnplay_playlist_normalize(omnplay_instance_t* app);
 void omnplay_library_search(omnplay_instance_t* app, int next);
 void omnplay_set_status(omnplay_instance_t* app, char* str);
+int* omnplay_selected_idxs_playlist(omnplay_instance_t* app);
 
 #ifdef __cplusplus
 };
