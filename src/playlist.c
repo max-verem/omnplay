@@ -273,7 +273,10 @@ void omnplay_playlist_draw(omnplay_instance_t* app)
     {
         char ch[3];
 
-        snprintf(ch, sizeof(ch), "%c", 'A' + app->playlist.item[i].player);
+        if(OMNPLAY_PLAYLIST_BLOCK_BEGIN & app->playlist.item[i].type)
+            snprintf(ch, sizeof(ch), "%c", 'A' + app->playlist.item[i].player);
+        else
+            ch[0] = 0;
 
         gtk_list_store_append(list_store, &iter);
 
@@ -330,7 +333,10 @@ static gboolean omnplay_playlist_draw_item_proc(
 
     if(i != item->idx) return FALSE;
 
-    snprintf(ch, sizeof(ch), "%c", 'A' + app->playlist.item[i].player);
+    if(OMNPLAY_PLAYLIST_BLOCK_BEGIN & app->playlist.item[i].type)
+        snprintf(ch, sizeof(ch), "%c", 'A' + app->playlist.item[i].player);
+    else
+        ch[0] = 0;
 
     gtk_list_store_set(item->list_store, iter,
         0, "",
