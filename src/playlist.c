@@ -208,6 +208,13 @@ static int save_file_ply(omnplay_instance_t* app, char* filename)
     int i;
     FILE* f;
     char tc1[12], tc2[12], tc3[12];
+    char* fname = filename;
+
+    filename = (char*)malloc(PATH_MAX);
+    strncpy(filename, fname, PATH_MAX);
+    i = strlen(filename);
+    if(i < 4 || strcasecmp(filename + i - 4, ".ply"))
+        strcat(filename, ".ply");
 
     if((f = fopen(filename, "wt")))
     {
@@ -220,6 +227,8 @@ static int save_file_ply(omnplay_instance_t* app, char* filename)
                 frames2tc(app->playlist.item[i].in + app->playlist.item[i].dur, 25.0, tc2),
                 frames2tc(app->playlist.item[i].dur, 25.0, tc3));
     };
+
+    free(filename);
 
     return 0;
 };
