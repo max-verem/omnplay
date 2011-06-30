@@ -223,7 +223,7 @@ void omnplay_playlist_save(omnplay_instance_t* app)
         GTK_WINDOW (app->window),
         GTK_FILE_CHOOSER_ACTION_SAVE,
         GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
-        GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT,
+        GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT,
         NULL);
 
     gtk_file_chooser_set_do_overwrite_confirmation(GTK_FILE_CHOOSER(dialog), TRUE);
