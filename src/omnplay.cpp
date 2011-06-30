@@ -1355,6 +1355,48 @@ static void playlist_grid_drag_data_delete(GtkWidget *widget, GdkDragContext *co
     free(list);
 };
 
+/*
+ * http://www.mail-archive.com/mahogany-users@lists.sourceforge.net/msg00286.html
+ */
+static gboolean playlist_grid_drag_motion(GtkWidget *widget, GdkDragContext *context,
+    gint x, gint y, guint time, gpointer data)
+{
+    gboolean same;
+    GtkWidget *source_widget;
+
+    g_warning("playlist_grid_drag_motion");
+
+    /* Get source widget and check if it is the same as the
+     * destination widget.
+     */
+    source_widget = gtk_drag_get_source_widget(context);
+    same = ((source_widget == widget) ? TRUE : FALSE);
+
+    /* Put additional checks here, perhaps if same is FALSE then
+     * set the default drag to GDK_ACTION_COPY.
+     */
+
+    /* Say we just want to allow GDK_ACTION_MOVE, first we check
+     * if that is in the list of allowed actions on the dc. If
+     * so then we set it to that. Note if the user holds down the
+     * ctrl key then the only flag in dc->actions will be
+     * GDK_ACTION_COPY. The constraint for dc->actions is that
+     * specified from the given actions in gtk_drag_dest_set() and
+     * gtk_drag_source_set().
+     */
+    if(same)
+    {
+        if(context->actions == GDK_ACTION_MOVE)
+            gdk_drag_status(context, GDK_ACTION_COPY, time);
+        else
+            gdk_drag_status(context, GDK_ACTION_MOVE, time);
+    }
+    else
+        gdk_drag_status(context, context->actions, time);
+
+    return(TRUE);
+}
+
 void omnplay_init(omnplay_instance_t* app)
 {
     int i;
@@ -1414,7 +1456,7 @@ void omnplay_init(omnplay_instance_t* app)
     gtk_drag_source_set(app->playlist_grid, GDK_BUTTON1_MASK,
         drag_targets, 1, (GdkDragAction)(GDK_ACTION_COPY | GDK_ACTION_MOVE));
 
-    gtk_drag_dest_set(app->playlist_grid, GTK_DEST_DEFAULT_ALL,
+    gtk_drag_dest_set(app->playlist_grid, (GtkDestDefaults)(GTK_DEST_DEFAULT_HIGHLIGHT | GTK_DEST_DEFAULT_DROP),
         drag_targets, 1, (GdkDragAction)(GDK_ACTION_COPY | GDK_ACTION_MOVE));
 
     g_signal_connect (app->library_grid, "drag_data_get", G_CALLBACK(library_grid_drag_data_get_cb), app);
@@ -1423,6 +1465,7 @@ void omnplay_init(omnplay_instance_t* app)
     g_signal_connect (app->playlist_grid, "drag_begin", G_CALLBACK(playlist_grid_drag_begin_cb), app);
     g_signal_connect (app->playlist_grid, "drag_data_received", G_CALLBACK (playlist_grid_drag_data_received), app);
     g_signal_connect (app->playlist_grid, "drag_data_delete", G_CALLBACK (playlist_grid_drag_data_delete), app);
+    g_signal_connect (app->playlist_grid, "drag_motion", G_CALLBACK (playlist_grid_drag_motion), app);
 };
 
 void omnplay_release(omnplay_instance_t* app)
