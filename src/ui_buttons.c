@@ -76,7 +76,7 @@ static const button_desc_t buttons[] =
     },
     {
         BUTTON_PLAYLIST_ITEM_UP,
-        "Move item ebove (Ctrl-UP)",
+        "Move item above (Ctrl-UP)",
         NULL,
         NULL,
         "button_playlist_up",
