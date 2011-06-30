@@ -322,6 +322,7 @@ static gboolean omnplay_playlist_draw_item_proc(
 {
     int i;
     char tc1[12], tc2[12];
+    char ch[3];
     omnplay_playlist_draw_item_t* item = (omnplay_playlist_draw_item_t*)user_data;
     omnplay_instance_t* app = item->app;
 
@@ -329,10 +330,12 @@ static gboolean omnplay_playlist_draw_item_proc(
 
     if(i != item->idx) return FALSE;
 
+    snprintf(ch, sizeof(ch), "%c", 'A' + app->playlist.item[i].player);
+
     gtk_list_store_set(item->list_store, iter,
         0, "",
         1, app->playlist.block_icons[app->playlist.item[i].type],
-        2, (0 == app->playlist.item[i].player)?"A":"B",
+        2, ch,
         3, app->playlist.item[i].id,
         4, frames2tc(app->playlist.item[i].in, 25.0, tc1),
         5, frames2tc(app->playlist.item[i].dur, 25.0, tc2),
