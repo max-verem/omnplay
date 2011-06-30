@@ -157,6 +157,7 @@ void omnplay_playlist_load(omnplay_instance_t* app)
 {
     int r;
     GtkWidget *dialog;
+    GtkFileFilter *filter;
 
     dialog = gtk_file_chooser_dialog_new("Open File",
         GTK_WINDOW (app->window),
@@ -167,6 +168,15 @@ void omnplay_playlist_load(omnplay_instance_t* app)
 
     gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER(dialog),
         (app->playlist.path)?app->playlist.path:getenv("HOME"));
+
+    filter = gtk_file_filter_new();
+    gtk_file_filter_set_name(filter, "Playlist formatted (*.ply)");
+    gtk_file_filter_add_pattern(filter, "*.ply");
+    gtk_file_chooser_add_filter(GTK_FILE_CHOOSER (dialog), filter);
+    filter = gtk_file_filter_new();
+    gtk_file_filter_set_name(filter, "All types (*.*)");
+    gtk_file_filter_add_pattern(filter, "*.*");
+    gtk_file_chooser_add_filter(GTK_FILE_CHOOSER (dialog), filter);
 
     r = gtk_dialog_run(GTK_DIALOG(dialog));
 
@@ -218,6 +228,7 @@ void omnplay_playlist_save(omnplay_instance_t* app)
 {
     int r;
     GtkWidget *dialog;
+    GtkFileFilter *filter;
 
     dialog = gtk_file_chooser_dialog_new("Save File",
         GTK_WINDOW (app->window),
@@ -231,6 +242,17 @@ void omnplay_playlist_save(omnplay_instance_t* app)
     gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER(dialog),
         (app->playlist.path)?app->playlist.path:getenv("HOME"));
 
+    filter = gtk_file_filter_new();
+    gtk_file_filter_set_name(filter, "Playlist formatted (*.ply)");
+    gtk_file_filter_add_pattern(filter, "*.ply");
+    gtk_file_chooser_add_filter(GTK_FILE_CHOOSER (dialog), filter);
+    g_object_set_data(G_OBJECT(filter), "id", GINT_TO_POINTER(0));
+    filter = gtk_file_filter_new();
+    gtk_file_filter_set_name(filter, "Text (*.txt)");
+    gtk_file_filter_add_pattern(filter, "*.*");
+    gtk_file_chooser_add_filter(GTK_FILE_CHOOSER (dialog), filter);
+    g_object_set_data(G_OBJECT(filter), "id", GINT_TO_POINTER(1));
+
     r = gtk_dialog_run(GTK_DIALOG(dialog));
 
     if(r == GTK_RESPONSE_ACCEPT)
@@ -238,6 +260,8 @@ void omnplay_playlist_save(omnplay_instance_t* app)
         char *filename;
 
         filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
+
+        r = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(gtk_file_chooser_get_filter(GTK_FILE_CHOOSER(dialog))), "id"));
 
         r = save_file_ply(app, filename);
 
