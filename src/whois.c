@@ -55,6 +55,8 @@ static int save_list(playlist_item_t* item, int count, char* filename)
                 frames2tc(item[i].dur, 25.0, tc_dur));
 
         fclose(f);
+
+        g_warning("whois.c: save_list: filename=[%s], count=[%d]\n", filename, count);
     }
     else
         r = 1;

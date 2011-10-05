@@ -128,7 +128,7 @@ int omnplay_library_load_file(playlist_item_t* items, int *pcount, char* filenam
     /* open and process file */
     if((f = fopen(filename, "rt")))
     {
-        while( !feof(f) && c < (limit -1))
+        while(!feof(f) && c < limit)
         {
             char *s, *sp_r, *sp_b;
 
@@ -158,7 +158,9 @@ int omnplay_library_load_file(playlist_item_t* items, int *pcount, char* filenam
 
                 /* insert item */
                 items[c++] = item;
-            };
+            }
+            else
+                g_warning("omnplay_library_load_file: ignored line [%s]\n", l);
         }
 
         fclose(f);
@@ -170,6 +172,8 @@ int omnplay_library_load_file(playlist_item_t* items, int *pcount, char* filenam
     free(l);
 
     *pcount = c;
+
+    g_warning("omnplay_library_load_file: loaded [%d] items from [%s] file, limit [%d]\n", c, filename, limit);
 
     return r;
 };
@@ -206,8 +210,8 @@ static void omnplay_library_save_file(playlist_item_t* item, int count, char* fi
                 frames2tc(item[i].in, 25.0, tc_in),
                 frames2tc(item[i].dur, 25.0, tc_dur),
                 item[i].title);
-
         fclose(f);
+        g_warning("omnplay_library_save_file: written [%d] lines to file [%s]\n", count, filename);
     };
 };
 
