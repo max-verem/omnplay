@@ -1208,11 +1208,13 @@ static gboolean on_library_grid_button(GtkWidget *widget, GdkEventButton *event,
 
 static gboolean on_playlist_grid_button(GtkWidget *widget, GdkEventButton *event, gpointer data)
 {
+    omnplay_instance_t* app = (omnplay_instance_t*)data;
+
 //    g_warning("on_playlist_grid_button");
 
     if(event->button==1 && event->type==GDK_2BUTTON_PRESS)
     {
-        omnplay_ctl((omnplay_instance_t* )data, BUTTON_PLAYER_CUE);
+        omnplay_playlist_item_edit(app);
         return TRUE;
     };
 
