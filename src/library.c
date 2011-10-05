@@ -91,6 +91,35 @@ int omnplay_library_normalize_item(omnplay_instance_t* app, playlist_item_t* ite
     return r;
 };
 
+int omnplay_library_relink_item(omnplay_instance_t* app, playlist_item_t* item)
+{
+    int r = 0;
+    playlist_item_t* lib;
+
+    pthread_mutex_lock(&app->library.lock);
+
+    lib = omnplay_library_find(app, item->id);
+
+    item->error = 0;
+
+    if(lib)
+    {
+        r = 1;
+        strcpy(item->title, lib->title);
+        item->dur = lib->dur;
+        item->in = lib->in;
+    }
+    else
+    {
+        r = 1;
+        item->error = PLAYLIST_ITEM_ERROR_LIB;
+    };
+
+    pthread_mutex_unlock(&app->library.lock);
+
+    return r;
+};
+
 void omnplay_library_sort(omnplay_instance_t* app)
 {
     int i, j, m;

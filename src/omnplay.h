@@ -53,6 +53,8 @@ typedef enum control_buttons
     BUTTON_LIBRARY_FIND,
     BUTTON_LIBRARY_FIND_NEXT,
 
+    BUTTON_PLAYLIST_RELINK,
+
     BUTTON_LAST
 } control_buttons_t;
 
@@ -175,6 +177,7 @@ void omnplay_release(omnplay_instance_t* app);
 void omnplay_destroy(omnplay_instance_t* app);
 void omnplay_playlist_load(omnplay_instance_t* app);
 void omnplay_playlist_save(omnplay_instance_t* app);
+void omnplay_playlist_relink(omnplay_instance_t* app);
 void omnplay_playlist_draw(omnplay_instance_t* app);
 void omnplay_playlist_draw_item(omnplay_instance_t* app, int idx);
 void omnplay_playlist_draw_item_rem(omnplay_instance_t* app, int idx, char* rem);
@@ -189,6 +192,7 @@ int omnplay_whois_list(omnplay_instance_t* app, playlist_item_t *items, int* pli
 int omnplay_library_load_file(playlist_item_t* items, int *pcount, char* filename);
 playlist_item_t* omnplay_library_find(omnplay_instance_t* app, char* id);
 int omnplay_library_normalize_item(omnplay_instance_t* app, playlist_item_t* item);
+int omnplay_library_relink_item(omnplay_instance_t* app, playlist_item_t* item);
 playlist_item_t* omnplay_library_get_selected(omnplay_instance_t* app, int *count);
 void omnplay_playlist_normalize(omnplay_instance_t* app);
 void omnplay_library_search(omnplay_instance_t* app, int next);

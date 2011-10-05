@@ -439,6 +439,16 @@ static GtkWidget* pane_operate_buttons_playlist(GtkWidget* top, omnplay_instance
         ui_create_button(top, app, BUTTON_PLAYLIST_ITEM_DOWN),
             FALSE, FALSE, 0);
 
+    /* spacer */
+    gtk_box_pack_start (GTK_BOX (hbox),
+        create_label(top, "   ", NULL, GTK_JUSTIFY_CENTER),
+            FALSE, FALSE, 0);
+
+    /* playlist relink */
+    gtk_box_pack_start (GTK_BOX (hbox),
+        ui_create_button(top, app, BUTTON_PLAYLIST_RELINK),
+            FALSE, FALSE, 0);
+
     return hbox;
 }
 

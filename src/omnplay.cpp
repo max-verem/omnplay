@@ -571,6 +571,32 @@ static void omnplay_playlist_item_del(omnplay_instance_t* app)
     free(list);
 };
 
+void omnplay_playlist_relink(omnplay_instance_t* app)
+{
+    int i, idx, c;
+    int *list;
+
+    pthread_mutex_lock(&app->playlist.lock);
+    list = omnplay_selected_idxs_playlist(app);
+    if(list)
+    {
+        for(i = 0, c = 0; i < list[0]; i++)
+        {
+            /* check for playing block */
+            if(idx_in_players_range(app, list[i + 1]))
+                continue;
+            /* relink item */
+            omnplay_library_relink_item(app, &app->playlist.item[list[i + 1]]);
+        };
+
+        free(list);
+    };
+    pthread_mutex_unlock(&app->playlist.lock);
+
+    /* redraw playlist */
+    omnplay_playlist_draw(app);
+};
+
 static int omnplay_playlist_insert_check(omnplay_instance_t* app, int idx, playlist_item_type_t* t)
 {
     *t = OMNPLAY_PLAYLIST_ITEM_BLOCK_SINGLE;
@@ -998,6 +1024,9 @@ static gboolean omnplay_button_click(omnplay_instance_t* app, control_buttons_t 
             break;
         case BUTTON_LIBRARY_FIND_NEXT:
             omnplay_library_search(app, 1);
+            break;
+        case BUTTON_PLAYLIST_RELINK:
+            omnplay_playlist_relink(app);
             break;
     };
 
