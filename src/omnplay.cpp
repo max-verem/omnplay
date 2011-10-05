@@ -188,14 +188,11 @@ static void omnplay_update_status(omnplay_player_t* player, OmPlrStatus *prev , 
     gdk_threads_enter();
     pthread_mutex_lock(&player->app->playlist.lock);
     pthread_mutex_lock(&player->app->players.lock);
-    if(curr->state == omPlrStatePlay || curr->state == omPlrStateCuePlay)
+
+    /* check if playlist exist */
+    if(player->playlist_length)
     {
-        idx = find_index_of_playlist_item(player->app, player->playlist_start, curr->currClipNum);
-        if(idx >= 0)
-        {
-            frames2tc(curr->currClipStartPos + curr->currClipLen - curr->pos, 25.0, tc_rem);
-            omnplay_playlist_draw_item_rem(player->app, idx, tc_rem);
-        }
+        /* clear remain on "previous" item */
         if(curr->currClipNum != prev->currClipNum && 1 != prev->numClips)
         {
             tc_rem[0] = 0;
@@ -203,16 +200,21 @@ static void omnplay_update_status(omnplay_player_t* player, OmPlrStatus *prev , 
             if(idx >= 0)
                 omnplay_playlist_draw_item_rem(player->app, idx, tc_rem);
         };
-    }
-    else
-    {
-        tc_rem[0] = 0;
+
+        /* update current item */
         idx = find_index_of_playlist_item(player->app, player->playlist_start, curr->currClipNum);
         if(idx >= 0)
+        {
+            /* reset value */
+            tc_rem[0] = 0;
+
+            /* for play and cue calc new value */
+            if(curr->state == omPlrStatePlay || curr->state == omPlrStateCuePlay)
+                frames2tc(curr->currClipStartPos + curr->currClipLen - curr->pos, 25.0, tc_rem);
+
+            /* setup that value */
             omnplay_playlist_draw_item_rem(player->app, idx, tc_rem);
-        idx = find_index_of_playlist_item(player->app, player->playlist_start, prev->currClipNum);
-        if(idx >= 0)
-            omnplay_playlist_draw_item_rem(player->app, idx, tc_rem);
+        };
     };
     pthread_mutex_unlock(&player->app->players.lock);
     pthread_mutex_unlock(&player->app->playlist.lock);
