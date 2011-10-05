@@ -46,6 +46,8 @@ int omnplay_get_content(omnplay_instance_t* app, playlist_item_t *items, int lim
     OmPlrClipInfo clip_info;
     char clip_name[omPlrMaxClipDirLen];
 
+    app->library.id_display_idx = 0;
+
     pthread_mutex_lock(&app->players.lock);
 
     r = OmPlrClipGetFirst((OmPlrHandle)app->players.item[0].handle, clip_name, sizeof(clip_name));

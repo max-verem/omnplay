@@ -228,7 +228,9 @@ void omnplay_library_save(omnplay_instance_t* app)
 
 static void omnplay_get_content_cb(omnplay_instance_t* app, playlist_item_t* item, void* data)
 {
-    omnplay_set_status(app, item->id);
+    if(!(app->library.id_display_idx % app->library.id_display_rate))
+        omnplay_set_status(app, item->id);
+    app->library.id_display_idx++;
 };
 
 static void* omnplay_library_refresh_proc(void* data)

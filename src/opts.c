@@ -37,6 +37,7 @@ static const struct option long_options [] =
     { "player",                 required_argument,    NULL,   '1'},
     { "library",                required_argument,    NULL,   '2'},
     { "whois",                  required_argument,    NULL,   '3'},
+    { "id-display-rate",        required_argument,    NULL,   '4'},
     { "help",                   no_argument,          NULL,   'h'},
     { 0,                        0,                    0,      0}
 };
@@ -47,6 +48,9 @@ int omnplay_opt(int argc, char** argv, omnplay_instance_t* app)
 {
     char* p;
     int c, index = 0;
+
+    /* setup defaults */
+    app->library.id_display_rate = 20;
 
     /* reset datas */
     optind = 0; opterr = 0; optopt = 0;
@@ -91,6 +95,11 @@ int omnplay_opt(int argc, char** argv, omnplay_instance_t* app)
                 strncpy(app->library.whois, optarg, PATH_MAX);
                 break;
 
+            /** --id-display-rate */
+            case '4':
+                app->library.id_display_rate = atol(optarg);
+                break;
+
             default:
                 fprintf(stderr, "ERROR: Incorrect argument!\n");
                 return 1;
@@ -109,5 +118,8 @@ void omnplay_usage(void)
         "Usage:\n"
         "\t--directory=<PATH> Directory to override default\n"
         "\t--player=<STRING>  Player to use in a form <player_name>@<mediadirector host>\n"
+        "\t--whois=<URL>      Whois service URL\n"
+        "\t--library=<PATH>   File used for library storage\n"
+        "\t--id-display-rate=<NUM> Rate of id displaying during server content requesting\n"
     );
 };

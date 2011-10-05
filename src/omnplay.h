@@ -159,6 +159,8 @@ typedef struct omnplay_instance
         pthread_mutex_t lock;
         GThread* refresh_thread;
         GtkWidget *search;
+        int id_display_rate;
+        int id_display_idx;
     } library;
     struct
     {
