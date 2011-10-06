@@ -788,24 +788,30 @@ static void omnplay_ctl(omnplay_instance_t* app, control_buttons_t button)
 
             if(!r)
             {
-                unsigned int l;
+                unsigned int l = 0;
 
                 g_warning("OmPlrClipGetInfo(%s): firstFrame=%d, lastFrame=%d\n",
                     app->playlist.item[i].id, clip.firstFrame, clip.lastFrame);
 
-                /* should we fix playlist clip timings */
-                if(!(
-                    app->playlist.item[i].in >= clip.firstFrame &&
-                    app->playlist.item[i].in + app->playlist.item[i].dur <= clip.lastFrame) ||
-                    !app->playlist.item[i].dur)
+                /* fix IN */
+                if(app->playlist.item[i].in < clip.firstFrame || app->playlist.item[i].in > clip.lastFrame)
                 {
-                    g_warning("cue: item [%s] will be updated [%d;%d]->[%d;%d]\n",
-                        app->playlist.item[i].id,
-                        app->playlist.item[i].in, app->playlist.item[i].dur,
-                        clip.firstFrame, clip.lastFrame - clip.firstFrame);
-
                     app->playlist.item[i].in = clip.firstFrame;
-                    app->playlist.item[i].dur = clip.lastFrame - clip.firstFrame;
+                    l++;
+                };
+
+                /* fix DUR */
+                if(app->playlist.item[i].in + app->playlist.item[i].dur > clip.lastFrame || !app->playlist.item[i].dur)
+                {
+                    app->playlist.item[i].dur = clip.firstFrame - app->playlist.item[i].in;
+                    l++;
+                };
+
+                /* notify */
+                if(l)
+                {
+                    g_warning("cue: item [%s] will be updated to [%d;%d]\n",
+                        app->playlist.item[i].id, app->playlist.item[i].in, app->playlist.item[i].dur);
                     omnplay_playlist_draw_item(app, i);
                 };
 
