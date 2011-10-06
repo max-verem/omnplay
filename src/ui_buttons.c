@@ -64,7 +64,7 @@ static const button_desc_t buttons[] =
         NULL,
         NULL,
         "button_playlist_relink",
-        "Axialis_Team_item_add_16x116.png"
+        "Axialis_Team_playlist_relink_16x16.png"
     },
     {
         BUTTON_PLAYLIST_ITEM_EDIT,
