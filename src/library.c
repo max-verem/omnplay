@@ -57,8 +57,11 @@ int omnplay_library_normalize_item(omnplay_instance_t* app, playlist_item_t* ite
 {
     int r = 0;
     playlist_item_t* lib;
+    playlist_item_t prev;
 
     pthread_mutex_lock(&app->library.lock);
+
+    prev = *item;
 
     lib = omnplay_library_find(app, item->id);
 
@@ -66,19 +69,27 @@ int omnplay_library_normalize_item(omnplay_instance_t* app, playlist_item_t* ite
 
     if(lib)
     {
-
         if(!item->title[0])
         {
             strcpy(item->title, lib->title);
-            r = 1;
+            r++;
         };
 
-        if(!item->dur || item->in < lib->in || (item->in + item->dur) > (lib->in + lib->dur))
+        if(item->in < lib->in || item->in >= (lib->in + lib->dur))
+        {
+            item->in = lib->in;
+            r++;
+        };
+
+        if(!item->dur || (item->in + item->dur) > (lib->in + lib->dur))
         {
             item->dur = lib->dur;
-            item->in = lib->in;
-            r = 1;
+            r++;
         };
+
+        if(r)
+            g_warning("omnplay_library_normalize_item: [%s,%d,%d]->[%s,%d,%d]\n",
+                prev.title, prev.in, prev.dur, item->title, item->in, item->dur);
     }
     else
     {
