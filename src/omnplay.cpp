@@ -143,7 +143,7 @@ static int find_index_of_playlist_item(omnplay_instance_t* app, int start, int i
     return -1;
 };
 
-static void omnplay_update_status(omnplay_player_t* player, OmPlrStatus *prev , OmPlrStatus *curr)
+static void omnplay_update_status(omnplay_player_t* player, OmPlrStatus *prev , OmPlrStatus *curr, int *playlist_start_prev)
 {
     int idx;
     char tc_cur[32], tc_rem[32], state[32], status[32];
@@ -193,10 +193,11 @@ static void omnplay_update_status(omnplay_player_t* player, OmPlrStatus *prev , 
     if(player->playlist_length)
     {
         /* clear remain on "previous" item */
-        if(curr->currClipNum != prev->currClipNum && 1 != prev->numClips)
+        if((curr->currClipNum != prev->currClipNum && 1 != prev->numClips) ||
+            (*playlist_start_prev != player->playlist_start))
         {
             tc_rem[0] = 0;
-            idx = find_index_of_playlist_item(player->app, player->playlist_start, prev->currClipNum);
+            idx = find_index_of_playlist_item(player->app, *playlist_start_prev, prev->currClipNum);
             if(idx >= 0)
                 omnplay_playlist_draw_item_rem(player->app, idx, tc_rem);
         };
@@ -228,6 +229,7 @@ static void omnplay_update_status(omnplay_player_t* player, OmPlrStatus *prev , 
 static void* omnplay_thread_proc(void* data)
 {
     int r;
+    int playlist_start_prev = 0;
     OmPlrStatus st_curr, st_prev;
     omnplay_player_t* player = (omnplay_player_t*)data;
 
@@ -292,8 +294,11 @@ static void* omnplay_thread_proc(void* data)
         if(r)
             g_warning("ERROR: OmPlrGetPlayerStatus failed with 0x%.8X\n", r);
         else
-            if(memcmp(&st_curr, &st_prev, sizeof(OmPlrStatus)))
-                omnplay_update_status(player, &st_prev , &st_curr);
+        {
+            omnplay_update_status(player, &st_prev , &st_curr, &playlist_start_prev);
+            playlist_start_prev = player->playlist_start;
+            memcmp(&st_curr, &st_prev, sizeof(OmPlrStatus));
+        };
     };
 
     pthread_mutex_lock(&player->app->players.lock);
