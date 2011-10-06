@@ -83,7 +83,7 @@ int omnplay_library_normalize_item(omnplay_instance_t* app, playlist_item_t* ite
 
         if(!item->dur || (item->in + item->dur) > (lib->in + lib->dur))
         {
-            item->dur = lib->dur;
+            item->dur = lib->in + lib->dur - item->in;
             r++;
         };
 
