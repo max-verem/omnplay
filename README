@@ -15,3 +15,14 @@
     # create lib file
     /usr/i686-pc-mingw32/bin/dlltool omplrlib.dll --def omplrlib.def --output-lib ../lib/libomplrlib.a
     /usr/i686-pc-mingw32/bin/dlltool ommedia.dll --def ommedia.def --output-lib ../lib/libommedia.a
+
+
+*****************************************************************
+
+1. generate files:
+    ./autogen
+
+2. configure for linux
+    ./configure \
+        --with-ommedia=/usr/local/omneon/ommedia-linux32-6.3.0.20110519 \
+        --with-omplrlib=/usr/local/omneon/omplrlib-linux32-6.3.0.20110519
