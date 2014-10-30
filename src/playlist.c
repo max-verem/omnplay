@@ -32,100 +32,143 @@
 #include "ui.h"
 #include "timecode.h"
 
+#if !HAVE_STRSEP
+/*
+    https://gitorious.org/mingw-unofficial/msys/source/956185bef3c2dafb0e6f5f9eadd925ec55139f2e:rt/src/winsup/cygwin/strsep.cc
+*/
+static char * strsep (char **stringp, const char *delim)
+{
+    register char *s;
+    register const char *spanp;
+    register int c, sc;
+    char *tok;
+    if((s = *stringp) == NULL)
+        return (NULL);
+
+    for(tok = s;;)
+    {
+        c = *s++;
+        spanp = delim;
+        do
+        {
+            if((sc = *spanp++) == c)
+            {
+                if(c == 0)
+                    s = NULL;
+                else
+                    s[-1] = 0;
+                *stringp = s;
+
+                return (tok);
+            }
+        } while (sc != 0);
+    }
+
+    /* NOTREACHED */
+};
+
+#endif
+
 static int load_file_ply(omnplay_instance_t* app, char* filename)
 {
     FILE* f;
-    char *ID, *CH, *B, *IN, *OUT, *DUR, *REST, *l;
+    char *l;
     int count = 0, i;
     playlist_item_t* items;
+
+    g_warning("%s:%d filename = [%s]", __FUNCTION__, __LINE__, filename);
+
+    /* open and process file */
+    f = fopen(filename, "rt");
+    if(!f)
+    {
+        g_warning("%s:%d failed to open filename = [%s]", __FUNCTION__, __LINE__, filename);
+        return 0;
+    };
 
     /* allocate space for strings and items */
     items = malloc(sizeof(playlist_item_t) * MAX_PLAYLIST_ITEMS);
     memset(items, 0, sizeof(playlist_item_t) * MAX_PLAYLIST_ITEMS);
-    ID = malloc(PATH_MAX);
-    CH = malloc(PATH_MAX);
-    B = malloc(PATH_MAX);
-    IN = malloc(PATH_MAX);
-    OUT = malloc(PATH_MAX);
-    DUR = malloc(PATH_MAX);
-    REST = malloc(PATH_MAX);
     l = malloc(PATH_MAX);
 
-    /* open and process file */
-    f = fopen(filename, "rt");
-    if(f)
+    while(!feof(f))
     {
-        while( !feof(f) )
+        char* s;
+        char *save, *str, *tok;
+        playlist_item_t item;
+
+        /* load string */
+        l[0] = 0;
+        fgets(l, PATH_MAX, f);
+
+        /* remove newlines */
+        while((s = strchr(l, '\n'))) *s = 0;
+        while((s = strchr(l, '\r'))) *s = 0;
+        while((s = strchr(l, '\t'))) *s = 0;
+
+        /* check for empty line */
+        if(!l[0] || l[0] == '#')
+            continue;
+
+        /* process split tokens */
+        memset(&item, 0, sizeof(item));
+        i = 0;
+        str = save = strdup(l);
+        while((tok = strsep(&str, ",")) != NULL)
         {
-            char* s;
+            g_warning("%s:%d tok[%d]=[%s]", __FUNCTION__, __LINE__, i, tok);
 
-            /* load string */
-            memset(l, 0, PATH_MAX);
-            fgets(l, PATH_MAX, f);
-
-            /* remove newlines */
-            if( (s = strchr(l, '\n')) ) *s = 0;
-            if( (s = strchr(l, '\r')) ) *s = 0;
-            if( (s = strchr(l, '\t')) ) *s = 0;
-
-            /* check for empty line */
-            if(l[0] && l[0] != '#')
+            if(0 == i)
+                strncpy(item.id, tok, PATH_MAX);
+            else if(1 == i)
+                item.player = atol(tok) - 1;
+            else if(2 == i)
             {
-                if (6 != sscanf(l, "%128[^,],%128[^,],%128[^,],%128[^,],%128[^,],%128[^,],%s",
-                    ID, CH, B, IN, OUT, DUR, REST))
+                int b = atol(tok);
+                switch(b)
                 {
-                    int b = atol(B);
-                    /* setup item */
-                    tc2frames(IN, 25.0, &items[count].in);
-                    tc2frames(DUR, 25.0, &items[count].dur);
-                    strncpy(items[count].id, ID, PATH_MAX);
-                    items[count].player = atol(CH) - 1;
-                    switch(b)
-                    {
-                        case 1: items[count].type = OMNPLAY_PLAYLIST_ITEM_BLOCK_SINGLE; break;
-                        case 2: items[count].type = OMNPLAY_PLAYLIST_ITEM_LOOP_BEGIN; break;
-                        case 3: items[count].type = OMNPLAY_PLAYLIST_ITEM_LOOP_BODY; break;
-                        case 4: items[count].type = OMNPLAY_PLAYLIST_ITEM_LOOP_END; break;
-                        case 6: items[count].type = OMNPLAY_PLAYLIST_ITEM_BLOCK_END; break;
-                        case 0:
-                            if(!count)
-                                items[count].type = OMNPLAY_PLAYLIST_ITEM_BLOCK_BEGIN;
-                            else if(items[count - 1].type == OMNPLAY_PLAYLIST_ITEM_BLOCK_BEGIN ||
-                                    items[count - 1].type == OMNPLAY_PLAYLIST_ITEM_BLOCK_BODY)
-                                items[count].type = OMNPLAY_PLAYLIST_ITEM_BLOCK_BODY;
-                            else
-                                items[count].type = OMNPLAY_PLAYLIST_ITEM_BLOCK_BEGIN;
-                            break;
-                        default:
-                            if(b >= 1024)
-                                items[count].type = b - 1024;
-                    };
-#if 0
-                    {
-                        char* n;
-                        switch(items[count].type)
-                        {
-                            case OMNPLAY_PLAYLIST_ITEM_BLOCK_BEGIN:       n = "BLOCK_BEGIN"; break;
-                            case OMNPLAY_PLAYLIST_ITEM_BLOCK_BODY:        n = "BLOCK_BODY"; break;
-                            case OMNPLAY_PLAYLIST_ITEM_BLOCK_END:         n = "BLOCK_END"; break;
-                            case OMNPLAY_PLAYLIST_ITEM_BLOCK_SINGLE:      n = "BLOCK_SINGLE"; break;
-                            case OMNPLAY_PLAYLIST_ITEM_LOOP_BEGIN:        n = "LOOP_BEGIN"; break;
-                            case OMNPLAY_PLAYLIST_ITEM_LOOP_BODY:         n = "LOOP_BODY"; break;
-                            case OMNPLAY_PLAYLIST_ITEM_LOOP_END:          n = "LOOP_END"; break;
-                            case OMNPLAY_PLAYLIST_ITEM_LOOP_SINGLE:       n = "LOOP_SINGLE"; break;
-                        };
-                        fprintf(stderr, "src=[%s]\ndst=[idx=%d,block=%s,block_id=%d,in=%d,out=%d]\n",
-                            l, count, n, items[count].type, items[count].in, items[count].dur);
-                    };
-#endif
-
-                    count++;
+                    case 1: item.type = OMNPLAY_PLAYLIST_ITEM_BLOCK_SINGLE; break;
+                    case 2: item.type = OMNPLAY_PLAYLIST_ITEM_LOOP_BEGIN; break;
+                    case 3: item.type = OMNPLAY_PLAYLIST_ITEM_LOOP_BODY; break;
+                    case 4: item.type = OMNPLAY_PLAYLIST_ITEM_LOOP_END; break;
+                    case 6: item.type = OMNPLAY_PLAYLIST_ITEM_BLOCK_END; break;
+                    case 0:
+                        if(!count)
+                            item.type = OMNPLAY_PLAYLIST_ITEM_BLOCK_BEGIN;
+                        else if
+                        (
+                            items[count - 1].type == OMNPLAY_PLAYLIST_ITEM_BLOCK_BEGIN
+                            ||
+                            items[count - 1].type == OMNPLAY_PLAYLIST_ITEM_BLOCK_BODY
+                        )
+                            item.type = OMNPLAY_PLAYLIST_ITEM_BLOCK_BODY;
+                        else
+                            item.type = OMNPLAY_PLAYLIST_ITEM_BLOCK_BEGIN;
+                        break;
+                    default:
+                        if(b >= 1024)
+                            item.type = b - 1024;
                 }
-            };
+            }
+            else if(3 == i)
+                tc2frames(tok, 25.0, &item.in);
+            else if(5 == i)
+                tc2frames(tok, 25.0, &item.dur);
+
+            i++;
         }
 
-        fclose(f);
+        if(i > 5)
+        {
+            g_warning("%s:%d count=[%d] id={%s} in={%d} dur={%d}", __FUNCTION__, __LINE__, count, item.id, item.in, item.dur);
+            items[count] = item;
+            count++;
+        }
+        else
+            g_warning("%s:%d i = %d", __FUNCTION__, __LINE__, i);
     }
+
+    fclose(f);
 
     /* add loaded items to playlist */
     if(count)
@@ -142,12 +185,6 @@ static int load_file_ply(omnplay_instance_t* app, char* filename)
 
     /* free data */
     free(items);
-    free(ID);
-    free(CH);
-    free(IN);
-    free(OUT);
-    free(DUR);
-    free(REST);
     free(l);
 
     return count;

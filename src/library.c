@@ -72,24 +72,35 @@ int omnplay_library_normalize_item(omnplay_instance_t* app, playlist_item_t* ite
         if(!item->title[0])
         {
             strcpy(item->title, lib->title);
+            g_warning("%s: [%s] title=[%s]->[%s]", __FUNCTION__, item->id, prev.title, item->title);
             r++;
         };
 
         if(item->in < lib->in || item->in >= (lib->in + lib->dur))
         {
+            g_warning("%s: [%s] (item->in=[%d] < lib->in=[%d] || item->in=[%d] >= (lib->in=[%d] + lib->dur=[%d]))",
+                __FUNCTION__, item->id,
+                item->in, lib->in, item->in, lib->in, lib->dur);
+
             item->in = lib->in;
+
+            g_warning("%s: [%s] in=[%d]->[%d]", __FUNCTION__, item->id, prev.in, item->in);
+
             r++;
         };
 
         if(!item->dur || (item->in + item->dur) > (lib->in + lib->dur))
         {
+            g_warning("%s: [%s] (!item->dur=[%d] || (item->in=[%d] + item->dur=[%d]) > (lib->in=[%d] + lib->dur=[%d])",
+                __FUNCTION__, item->id,
+                item->dur, item->in, item->dur, lib->in, lib->dur);
+
             item->dur = lib->in + lib->dur - item->in;
+
+            g_warning("%s: [%s] dur=[%d]->[%d]", __FUNCTION__, item->id, prev.dur, item->dur);
+
             r++;
         };
-
-        if(r)
-            g_warning("omnplay_library_normalize_item: [%s,%d,%d]->[%s,%d,%d]\n",
-                prev.title, prev.in, prev.dur, item->title, item->in, item->dur);
     }
     else
     {
@@ -185,8 +196,12 @@ int omnplay_library_load_file(playlist_item_t* items, int *pcount, char* filenam
             {
                 memset(&item, 0, sizeof(playlist_item_t));
 
+                g_warning("%s: [%s]", __FUNCTION__, l);
+
                 for(i = 0, sp_b = l; (NULL != (sp_r = strtok(sp_b, "\t"))); i++, sp_b = NULL)
                 {
+                    g_warning("%s: [%d]=[%s]", __FUNCTION__, i, sp_r);
+
                     switch(i)
                     {
                         case 0: strncpy(item.id, sp_r, PATH_MAX); break;
@@ -198,6 +213,7 @@ int omnplay_library_load_file(playlist_item_t* items, int *pcount, char* filenam
 
                 /* insert item */
                 items[c++] = item;
+                g_warning("%s: id=[%s], in=[%d], dur=[%d]", __FUNCTION__, item.id, item.in, item.dur);
             }
             else
                 g_warning("omnplay_library_load_file: ignored line [%s]\n", l);
