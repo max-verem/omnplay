@@ -232,7 +232,7 @@ GtkWidget* ui_create_button(GtkWidget* top, omnplay_instance_t* app, control_but
     if(info->stock)
         image = gtk_image_new_from_stock(info->stock, GTK_ICON_SIZE_MENU);
     else if(info->filename)
-        image = gtk_image_new_from_pixbuf(create_pixbuf(info->filename));
+        image = gtk_image_new_from_pixbuf(create_pixbuf2(info->filename));
     if(image)
     {
         gtk_widget_show(image);

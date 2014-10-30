@@ -16,6 +16,51 @@
 
 #include "support.h"
 
+#include "pixmap2-internal.h"
+
+static const void* pixmap2_map[] =
+{
+    "Axialis_Team_item_add_16x116.png", Axialis_Team_item_add_16x116_png,
+    "Axialis_Team_item_add_from_library_16x16.png", Axialis_Team_item_add_from_library_16x16_png,
+    "Axialis_Team_item_block_16x116.png", Axialis_Team_item_block_16x116_png,
+    "Axialis_Team_item_delete_16x116.png", Axialis_Team_item_delete_16x116_png,
+    "Axialis_Team_item_edit_16x116.png", Axialis_Team_item_edit_16x116_png,
+    "Axialis_Team_item_loop_16x116.png", Axialis_Team_item_loop_16x116_png,
+    "Axialis_Team_item_move_down_16x116.png", Axialis_Team_item_move_down_16x116_png,
+    "Axialis_Team_item_move_up_16x116.png", Axialis_Team_item_move_up_16x116_png,
+    "Axialis_Team_library_refresh_16x16.png", Axialis_Team_library_refresh_16x16_png,
+    "Axialis_Team_player_cue_32x32.png", Axialis_Team_player_cue_32x32_png,
+    "Axialis_Team_player_pause_32x32.png", Axialis_Team_player_pause_32x32_png,
+    "Axialis_Team_player_play_64x32.png", Axialis_Team_player_play_64x32_png,
+    "Axialis_Team_player_stop_32x32.png", Axialis_Team_player_stop_32x32_png,
+    "Axialis_Team_playlist_open_16x16.png", Axialis_Team_playlist_open_16x16_png,
+    "Axialis_Team_playlist_relink_16x16.png", Axialis_Team_playlist_relink_16x16_png,
+    "Axialis_Team_playlist_save_16x16.png", Axialis_Team_playlist_save_16x16_png,
+    "Axialis_Team_search_in_library_16x16.png", Axialis_Team_search_in_library_16x16_png,
+    "Axialis_Team_search_next_16x16.png", Axialis_Team_search_next_16x16_png,
+    "block_type_block_end_16x16.png", block_type_block_end_16x16_png,
+    "block_type_block_loop_16x16.png", block_type_block_loop_16x16_png,
+    "block_type_block_middle_16x16.png", block_type_block_middle_16x16_png,
+    "block_type_block_single_16x16.png", block_type_block_single_16x16_png,
+    "block_type_block_start_16x16.png", block_type_block_start_16x16_png,
+    "block_type_loop_end_16x16.png", block_type_loop_end_16x16_png,
+    "block_type_loop_middle_16x16.png", block_type_loop_middle_16x16_png,
+    "block_type_loop_start_16x16.png", block_type_loop_start_16x16_png,
+    NULL, NULL
+};
+
+GdkPixbuf* create_pixbuf2(const gchar *filename)
+{
+    int i;
+
+    for(i = 0; pixmap2_map[i]; i += 2)
+        if(!strcmp((char*)pixmap2_map[i], filename))
+            return gdk_pixbuf_new_from_inline(-1, pixmap2_map[i + 1], FALSE, NULL);
+
+    return create_pixbuf(filename);
+}
+
+
 GtkWidget*
 lookup_widget                          (GtkWidget       *widget,
                                         const gchar     *widget_name)

@@ -37,6 +37,10 @@
 #include "opts.h"
 #include "timecode.h"
 
+#if defined(_WIN32)
+#include <windows.h>
+#endif
+
 #include "omplrclnt.h"
 
 int omnplay_get_content(omnplay_instance_t* app, playlist_item_t *items, int limit,
