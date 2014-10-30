@@ -2,19 +2,39 @@
     ./autogen
 
 2. configure for win32
+[old]
     ./configure --host=i686-pc-mingw32 \
         --with-ommedia=/usr/local/omneon/ommedia-win32-6.3.0.1.20110519 \
         --with-omplrlib=/usr/local/omneon/omplrlib-win32-6.3.0.1.20110519
+
+[FC20 x86_64]
+
+    ./configure \
+        --host=x86_64-w64-mingw32 \
+        --prefix=/home/verem/win64 \
+        --with-ommedia=/usr/local/omneon/ommedia-x64-0.0.0.0.20140725 \
+        --with-omplrlib=/usr/local/omneon/omplrlib-x64-7.6.0.0.20140725
+
 
 3. preparation of library files cross-compiling
 
     # create def file
     pexports.exe omplrlib.dll > omplrlib.def
     pexports.exe ommedia.dll > ommedia.def
+or
+C:\SDK\pexports-0.44-bin\bin\pexports.exe ommedia.dll > ommedia.def.win32
+C:\SDK\pexports-x64-0.44-bin\bin\pexports.exe ommedia.dll > ommedia.def.x64
+C:\SDK\pexports-0.44-bin\bin\pexports.exe omplrlib.dll > omplrlib.def.win32
+C:\SDK\pexports-x64-0.44-bin\bin\pexports.exe omplrlib.dll > omplrlib.def.x64
 
     # create lib file
     /usr/i686-pc-mingw32/bin/dlltool omplrlib.dll --def omplrlib.def --output-lib ../lib/libomplrlib.a
     /usr/i686-pc-mingw32/bin/dlltool ommedia.dll --def ommedia.def --output-lib ../lib/libommedia.a
+or
+/usr/i686-w64-mingw32/bin/dlltool ommedia.dll --def ../../ommedia.def.win32 --output-lib libommedia.a
+/usr/x86_64-w64-mingw32/bin/dlltool ommedia.dll --def ../../ommedia.def.x64 --output-lib libommedia.a
+/usr/i686-w64-mingw32/bin/dlltool omplrlib.dll --def ../../omplrlib.def.win32 --output-lib libomplrlib.a
+/usr/x86_64-w64-mingw32/bin/dlltool omplrlib.dll --def ../../omplrlib.def.x64 --output-lib libomplrlib.a
 
 
 *****************************************************************
