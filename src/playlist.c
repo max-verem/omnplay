@@ -263,6 +263,8 @@ static int save_file_ply(omnplay_instance_t* app, char* filename)
                 frames2tc(app->playlist.item[i].in, 25.0, tc1),
                 frames2tc(app->playlist.item[i].in + app->playlist.item[i].dur, 25.0, tc2),
                 frames2tc(app->playlist.item[i].dur, 25.0, tc3));
+
+        close(f);
     };
 
     free(filename);
